@@ -1,4 +1,4 @@
-﻿namespace Sportopoliten.DAL.Interfaces.Repositories
+﻿namespace Sportopoliten.DAL.Interfaces
 {
     public interface IRepository<T> where T : class
     {

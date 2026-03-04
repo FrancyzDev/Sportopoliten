@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sportopoliten.DAL.Data;
-using Sportopoliten.DAL.Interfaces.Repositories;
+using Sportopoliten.DAL.Interfaces;
 using System.Linq.Expressions;
 
 namespace Sportopoliten.DAL.Repositories

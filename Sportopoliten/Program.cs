@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using Sportopoliten.DAL.Interfaces;
 using Sportopoliten.DAL.Interfaces.Repositories;
 using Sportopoliten.DAL.Repositories;
@@ -7,13 +8,33 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new()
+        {
+            Title = "SPORTOPOLITEN API",
+            Version = "v1",
+            Description = "API для проекта SPORTOPOLITEN"
+        };
+        return Task.CompletedTask;
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("SPORTOPOLITEN API")
+            .WithTheme(ScalarTheme.Alternate)
+            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

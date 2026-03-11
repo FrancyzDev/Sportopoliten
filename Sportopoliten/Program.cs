@@ -1,6 +1,5 @@
 using Scalar.AspNetCore;
 using Sportopoliten.DAL.Interfaces;
-using Sportopoliten.DAL.Interfaces.Repositories;
 using Sportopoliten.DAL.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);

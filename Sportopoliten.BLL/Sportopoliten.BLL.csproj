@@ -17,4 +17,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Sportopoliten.DAL\Sportopoliten.DAL.csproj" />
+  </ItemGroup>
+
 </Project>

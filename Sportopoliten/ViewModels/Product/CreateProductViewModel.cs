@@ -2,7 +2,7 @@
 using Sportopoliten.ViewModels.Product;
 using System.Collections.Generic;
 
-namespace Sportopoliten.Web.ViewModels.Product
+namespace Sportopoliten.ViewModels.Product
 {
     public class CreateProductViewModel
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 
-namespace Sportopoliten.Web.ViewModels.Product
+namespace Sportopoliten.ViewModels.Product
 {
     public class ProductVariantViewModel
     {

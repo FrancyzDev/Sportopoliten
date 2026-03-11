@@ -18,7 +18,6 @@ public class AdminProductController : Controller
     }
 
     [HttpPost]
-    [HttpPost]
     public async Task<IActionResult> Create(CreateProductViewModel model)
     {
         if (!ModelState.IsValid)
@@ -49,7 +48,7 @@ public class AdminProductController : Controller
 
                 imageUrls.Add("/images/products/" + fileName);
             }
-            
+
             dto.Variants.Add(new ProductVariantDTO
             {
                 Color = variant.Color,

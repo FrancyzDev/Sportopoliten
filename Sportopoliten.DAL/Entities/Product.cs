@@ -15,6 +15,4 @@ namespace Sportopoliten.DAL.Entities
             public int CategoryId { get; set; }
             public Category Category { get; set; }
     }
-    
-
 }

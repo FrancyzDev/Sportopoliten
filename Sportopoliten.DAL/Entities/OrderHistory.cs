@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sportopoliten.DAL.Entities
+﻿namespace Sportopoliten.DAL.Entities
 {
-
     public class OrderHistory
     {
         public int Id { get; set; }

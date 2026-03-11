@@ -16,4 +16,17 @@
     <ProjectReference Include="..\Sportopoliten.DAL\Sportopoliten.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Catalog\" />
+    <Folder Include="Views\Cart\" />
+    <Folder Include="Views\Account\" />
+    <Folder Include="Views\Admin\" />
+    <Folder Include="Views\Order\" />
+    <Folder Include="Views\Product\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+  </ItemGroup>
+
 </Project>

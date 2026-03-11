@@ -1,16 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sportopoliten.DAL.Entities;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace Sportopoliten.DAL.Data
 {
     public class ShopDbContext : DbContext
     {
         public ShopDbContext(DbContextOptions<ShopDbContext> options)
-            : base(options)
-        {
-        }
+            : base(options) {}
 
         public DbSet<User> Users { get; set; }
         public DbSet<Cart> Carts { get; set; }

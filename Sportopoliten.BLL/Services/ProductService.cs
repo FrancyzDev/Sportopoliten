@@ -1,5 +1,4 @@
 ﻿using Sportopoliten.BLL.DTO;
-using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
 

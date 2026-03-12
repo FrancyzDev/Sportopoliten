@@ -1,53 +1,61 @@
 using Scalar.AspNetCore;
-using Sportopoliten.DAL.Interfaces;
-using Sportopoliten.DAL.Repositories;
+using Sportopoliten.Extensions;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddOpenApi("v1", options =>
+namespace Sportopoliten
 {
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    public class Program
     {
-        document.Info = new()
+        public static void Main(string[] args)
         {
-            Title = "SPORTOPOLITEN API",
-            Version = "v1",
-            Description = "API для проекта SPORTOPOLITEN"
-        };
-        return Task.CompletedTask;
-    });
-});
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddDatabase(builder.Configuration);
 
-var app = builder.Build();
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options
-            .WithTitle("SPORTOPOLITEN API")
-            .WithTheme(ScalarTheme.Alternate)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    });
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+            builder.Services.AddOpenApi("v1", options =>
+            {
+                options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    document.Info = new()
+                    {
+                        Title = "SPORTOPOLITEN API",
+                        Version = "v1",
+                        Description = "API для проекта SPORTOPOLITEN"
+                    };
+                    return Task.CompletedTask;
+                });
+            });
+
+            var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+                app.MapScalarApiReference(options =>
+                {
+                    options
+                        .WithTitle("SPORTOPOLITEN API")
+                        .WithTheme(ScalarTheme.Alternate)
+                        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+                });
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.MapStaticAssets();
+
+            app.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}")
+                .WithStaticAssets();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-
-app.Run();

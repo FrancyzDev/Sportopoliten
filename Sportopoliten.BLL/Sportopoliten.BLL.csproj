@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sportopoliten.DAL\Sportopoliten.DAL.csproj" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

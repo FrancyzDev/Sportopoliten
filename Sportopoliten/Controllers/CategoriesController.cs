@@ -10,23 +10,22 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.Controllers
 {
-    public class OrderController : Controller
+    public class CategoriesController : Controller
     {
         private readonly ShopDbContext _context;
 
-        public OrderController(ShopDbContext context)
+        public CategoriesController(ShopDbContext context)
         {
             _context = context;
         }
 
-        // GET: OrderHistories
+        // GET: Categories
         public async Task<IActionResult> Index()
         {
-            var shopDbContext = _context.Orders.Include(o => o.User);
-            return View(await shopDbContext.ToListAsync());
+            return View(await _context.Categories.ToListAsync());
         }
 
-        // GET: OrderHistories/Details/5
+        // GET: Categories/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +33,39 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var category = await _context.Categories
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (category == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(category);
         }
 
-        // GET: OrderHistories/Create
+        // GET: Categories/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
             return View();
         }
 
-        // POST: OrderHistories/Create
+        // POST: Categories/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orderHistory);
+                _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            return View(category);
         }
 
-        // GET: OrderHistories/Edit/5
+        // GET: Categories/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +73,22 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory == null)
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            return View(category);
         }
 
-        // POST: OrderHistories/Edit/5
+        // POST: Categories/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Category category)
         {
-            if (id != orderHistory.Id)
+            if (id != category.Id)
             {
                 return NotFound();
             }
@@ -102,12 +97,12 @@ namespace Sportopoliten.Controllers
             {
                 try
                 {
-                    _context.Update(orderHistory);
+                    _context.Update(category);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderHistoryExists(orderHistory.Id))
+                    if (!CategoryExists(category.Id))
                     {
                         return NotFound();
                     }
@@ -118,11 +113,10 @@ namespace Sportopoliten.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            return View(category);
         }
 
-        // GET: OrderHistories/Delete/5
+        // GET: Categories/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +124,34 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var category = await _context.Categories
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (category == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(category);
         }
 
-        // POST: OrderHistories/Delete/5
+        // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory != null)
+            var category = await _context.Categories.FindAsync(id);
+            if (category != null)
             {
-                _context.Orders.Remove(orderHistory);
+                _context.Categories.Remove(category);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderHistoryExists(int id)
+        private bool CategoryExists(int id)
         {
-            return _context.Orders.Any(e => e.Id == id);
+            return _context.Categories.Any(e => e.Id == id);
         }
     }
 }

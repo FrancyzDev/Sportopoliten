@@ -10,23 +10,23 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.Controllers
 {
-    public class OrderController : Controller
+    public class OrderItemsController : Controller
     {
         private readonly ShopDbContext _context;
 
-        public OrderController(ShopDbContext context)
+        public OrderItemsController(ShopDbContext context)
         {
             _context = context;
         }
 
-        // GET: OrderHistories
+        // GET: OrderItems
         public async Task<IActionResult> Index()
         {
-            var shopDbContext = _context.Orders.Include(o => o.User);
+            var shopDbContext = _context.OrderItems.Include(o => o.Order).Include(o => o.ProductVariant);
             return View(await shopDbContext.ToListAsync());
         }
 
-        // GET: OrderHistories/Details/5
+        // GET: OrderItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +34,45 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var orderItem = await _context.OrderItems
+                .Include(o => o.Order)
+                .Include(o => o.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (orderItem == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(orderItem);
         }
 
-        // GET: OrderHistories/Create
+        // GET: OrderItems/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
+            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Status");
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id");
             return View();
         }
 
-        // POST: OrderHistories/Create
+        // POST: OrderItems/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Create([Bind("Id,OrderId,ProductVariantId,ProductName,PriceAtPurchase,Count,Subtotal")] OrderItem orderItem)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orderHistory);
+                _context.Add(orderItem);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Status", orderItem.OrderId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", orderItem.ProductVariantId);
+            return View(orderItem);
         }
 
-        // GET: OrderHistories/Edit/5
+        // GET: OrderItems/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +80,24 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory == null)
+            var orderItem = await _context.OrderItems.FindAsync(id);
+            if (orderItem == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Status", orderItem.OrderId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", orderItem.ProductVariantId);
+            return View(orderItem);
         }
 
-        // POST: OrderHistories/Edit/5
+        // POST: OrderItems/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,OrderId,ProductVariantId,ProductName,PriceAtPurchase,Count,Subtotal")] OrderItem orderItem)
         {
-            if (id != orderHistory.Id)
+            if (id != orderItem.Id)
             {
                 return NotFound();
             }
@@ -102,12 +106,12 @@ namespace Sportopoliten.Controllers
             {
                 try
                 {
-                    _context.Update(orderHistory);
+                    _context.Update(orderItem);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderHistoryExists(orderHistory.Id))
+                    if (!OrderItemExists(orderItem.Id))
                     {
                         return NotFound();
                     }
@@ -118,11 +122,12 @@ namespace Sportopoliten.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Status", orderItem.OrderId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", orderItem.ProductVariantId);
+            return View(orderItem);
         }
 
-        // GET: OrderHistories/Delete/5
+        // GET: OrderItems/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +135,36 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var orderItem = await _context.OrderItems
+                .Include(o => o.Order)
+                .Include(o => o.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (orderItem == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(orderItem);
         }
 
-        // POST: OrderHistories/Delete/5
+        // POST: OrderItems/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory != null)
+            var orderItem = await _context.OrderItems.FindAsync(id);
+            if (orderItem != null)
             {
-                _context.Orders.Remove(orderHistory);
+                _context.OrderItems.Remove(orderItem);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderHistoryExists(int id)
+        private bool OrderItemExists(int id)
         {
-            return _context.Orders.Any(e => e.Id == id);
+            return _context.OrderItems.Any(e => e.Id == id);
         }
     }
 }

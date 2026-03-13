@@ -12,7 +12,7 @@ namespace Sportopoliten.DAL.Entities
             public string? Description { get; set; }
             public ICollection<ProductVariant> Variants { get; set; } = [];
 
-            public int CategoryId { get; set; }
+            public int? CategoryId { get; set; }
             public Category Category { get; set; }
     }
 }

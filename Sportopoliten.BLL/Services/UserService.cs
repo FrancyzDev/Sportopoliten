@@ -41,22 +41,24 @@ namespace Sportopoliten.BLL.Services
             await Database.SaveChangesAsync();
         }
 
-        //public async Task<RegisterUserDto?> Login(RegisterUserDto userDTO)
-        //{
-        //    var user = await Database.Users.FindAsync(userDTO.Email);
-        //    if (user == null) return null;
+        public async Task<RegisterUserDto?> Login(RegisterUserDto userDTO)
+        {
+            var users = await Database.Users.FindAsync(u => u.Login == userDTO.Email);
+            var user = users.FirstOrDefault();
+            if (user == null) return null;
 
-        //    var hashedPassword = HashPassword(userDTO.Password, user.Salt);
+            var hashedPassword = HashPassword(userDTO.Password, user.Salt);
 
-        //    if (user.Password == hashedPassword)
-        //    {
-        //        return new RegisterUserDto
-        //        {
-        //            Email = user.Login
-        //        };
-        //    }
-        //    return null;
-        //}
+            if (user.PasswordHash == hashedPassword)
+            {
+                return new RegisterUserDto
+                {
+                    Email = user.Login
+                };
+            }
+            return null;
+        }
+
         private string GenerateSalt()
         {
             byte[] saltBytes = RandomNumberGenerator.GetBytes(16);

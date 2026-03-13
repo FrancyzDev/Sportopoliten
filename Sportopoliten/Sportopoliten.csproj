@@ -9,8 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.5" />
   </ItemGroup>
 
@@ -20,12 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Catalog\" />
-    <Folder Include="Views\Cart\" />
-    <Folder Include="Views\Account\" />
     <Folder Include="Views\Admin\" />
-    <Folder Include="Views\Order\" />
-    <Folder Include="Views\Product\" />
+    <Folder Include="Views\Catalog\" />
   </ItemGroup>
 
   <ItemGroup>

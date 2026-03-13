@@ -10,23 +10,23 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.Controllers
 {
-    public class OrderController : Controller
+    public class CartItemsController : Controller
     {
         private readonly ShopDbContext _context;
 
-        public OrderController(ShopDbContext context)
+        public CartItemsController(ShopDbContext context)
         {
             _context = context;
         }
 
-        // GET: OrderHistories
+        // GET: CartItems
         public async Task<IActionResult> Index()
         {
-            var shopDbContext = _context.Orders.Include(o => o.User);
+            var shopDbContext = _context.CartItems.Include(c => c.Cart).Include(c => c.ProductVariant);
             return View(await shopDbContext.ToListAsync());
         }
 
-        // GET: OrderHistories/Details/5
+        // GET: CartItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +34,45 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var cartItem = await _context.CartItems
+                .Include(c => c.Cart)
+                .Include(c => c.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (cartItem == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(cartItem);
         }
 
-        // GET: OrderHistories/Create
+        // GET: CartItems/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
+            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id");
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id");
             return View();
         }
 
-        // POST: OrderHistories/Create
+        // POST: CartItems/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Create([Bind("Id,CartId,ProductVariantId,Count")] CartItem cartItem)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orderHistory);
+                _context.Add(cartItem);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id", cartItem.CartId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", cartItem.ProductVariantId);
+            return View(cartItem);
         }
 
-        // GET: OrderHistories/Edit/5
+        // GET: CartItems/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +80,24 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory == null)
+            var cartItem = await _context.CartItems.FindAsync(id);
+            if (cartItem == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id", cartItem.CartId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", cartItem.ProductVariantId);
+            return View(cartItem);
         }
 
-        // POST: OrderHistories/Edit/5
+        // POST: CartItems/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,CartId,ProductVariantId,Count")] CartItem cartItem)
         {
-            if (id != orderHistory.Id)
+            if (id != cartItem.Id)
             {
                 return NotFound();
             }
@@ -102,12 +106,12 @@ namespace Sportopoliten.Controllers
             {
                 try
                 {
-                    _context.Update(orderHistory);
+                    _context.Update(cartItem);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderHistoryExists(orderHistory.Id))
+                    if (!CartItemExists(cartItem.Id))
                     {
                         return NotFound();
                     }
@@ -118,11 +122,12 @@ namespace Sportopoliten.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id", cartItem.CartId);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", cartItem.ProductVariantId);
+            return View(cartItem);
         }
 
-        // GET: OrderHistories/Delete/5
+        // GET: CartItems/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +135,36 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var cartItem = await _context.CartItems
+                .Include(c => c.Cart)
+                .Include(c => c.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (cartItem == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(cartItem);
         }
 
-        // POST: OrderHistories/Delete/5
+        // POST: CartItems/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory != null)
+            var cartItem = await _context.CartItems.FindAsync(id);
+            if (cartItem != null)
             {
-                _context.Orders.Remove(orderHistory);
+                _context.CartItems.Remove(cartItem);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderHistoryExists(int id)
+        private bool CartItemExists(int id)
         {
-            return _context.Orders.Any(e => e.Id == id);
+            return _context.CartItems.Any(e => e.Id == id);
         }
     }
 }

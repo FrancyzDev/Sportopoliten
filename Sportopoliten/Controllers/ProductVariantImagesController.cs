@@ -10,23 +10,23 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.Controllers
 {
-    public class OrderController : Controller
+    public class ProductVariantImagesController : Controller
     {
         private readonly ShopDbContext _context;
 
-        public OrderController(ShopDbContext context)
+        public ProductVariantImagesController(ShopDbContext context)
         {
             _context = context;
         }
 
-        // GET: OrderHistories
+        // GET: ProductVariantImages
         public async Task<IActionResult> Index()
         {
-            var shopDbContext = _context.Orders.Include(o => o.User);
+            var shopDbContext = _context.ProductVariantImages.Include(p => p.ProductVariant);
             return View(await shopDbContext.ToListAsync());
         }
 
-        // GET: OrderHistories/Details/5
+        // GET: ProductVariantImages/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +34,42 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var productVariantImages = await _context.ProductVariantImages
+                .Include(p => p.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (productVariantImages == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(productVariantImages);
         }
 
-        // GET: OrderHistories/Create
+        // GET: ProductVariantImages/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id");
             return View();
         }
 
-        // POST: OrderHistories/Create
+        // POST: ProductVariantImages/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Create([Bind("Id,ProductVariantId,ImageUrl,Priority")] ProductVariantImages productVariantImages)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orderHistory);
+                _context.Add(productVariantImages);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", productVariantImages.ProductVariantId);
+            return View(productVariantImages);
         }
 
-        // GET: OrderHistories/Edit/5
+        // GET: ProductVariantImages/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +77,23 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory == null)
+            var productVariantImages = await _context.ProductVariantImages.FindAsync(id);
+            if (productVariantImages == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", productVariantImages.ProductVariantId);
+            return View(productVariantImages);
         }
 
-        // POST: OrderHistories/Edit/5
+        // POST: ProductVariantImages/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductVariantId,ImageUrl,Priority")] ProductVariantImages productVariantImages)
         {
-            if (id != orderHistory.Id)
+            if (id != productVariantImages.Id)
             {
                 return NotFound();
             }
@@ -102,12 +102,12 @@ namespace Sportopoliten.Controllers
             {
                 try
                 {
-                    _context.Update(orderHistory);
+                    _context.Update(productVariantImages);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderHistoryExists(orderHistory.Id))
+                    if (!ProductVariantImagesExists(productVariantImages.Id))
                     {
                         return NotFound();
                     }
@@ -118,11 +118,11 @@ namespace Sportopoliten.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["ProductVariantId"] = new SelectList(_context.ProductVariants, "Id", "Id", productVariantImages.ProductVariantId);
+            return View(productVariantImages);
         }
 
-        // GET: OrderHistories/Delete/5
+        // GET: ProductVariantImages/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +130,35 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var productVariantImages = await _context.ProductVariantImages
+                .Include(p => p.ProductVariant)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (productVariantImages == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(productVariantImages);
         }
 
-        // POST: OrderHistories/Delete/5
+        // POST: ProductVariantImages/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory != null)
+            var productVariantImages = await _context.ProductVariantImages.FindAsync(id);
+            if (productVariantImages != null)
             {
-                _context.Orders.Remove(orderHistory);
+                _context.ProductVariantImages.Remove(productVariantImages);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderHistoryExists(int id)
+        private bool ProductVariantImagesExists(int id)
         {
-            return _context.Orders.Any(e => e.Id == id);
+            return _context.ProductVariantImages.Any(e => e.Id == id);
         }
     }
 }

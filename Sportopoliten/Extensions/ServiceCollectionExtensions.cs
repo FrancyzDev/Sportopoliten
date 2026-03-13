@@ -16,13 +16,6 @@ namespace Sportopoliten.Extensions
                         options.UseNpgsql(
                             configuration.GetConnectionString("Postgres")));
                     break;
-                case "MySql":
-                    services.AddDbContext<ShopDbContext>(options =>
-                        options.UseMySql(
-                            configuration.GetConnectionString("MySql"),
-                            ServerVersion.AutoDetect(
-                                configuration.GetConnectionString("MySql"))));
-                    break;
                 case "SqlServer":
                     services.AddDbContext<ShopDbContext>(options =>
                         options.UseSqlServer(

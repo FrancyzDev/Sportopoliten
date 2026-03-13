@@ -11,6 +11,6 @@ namespace Sportopoliten.DAL.Entities
 
         public string Name { get; set; }
 
-        public List<Product> Products { get; set; }
+        public List<Product> Products { get; set; } = new List<Product>();
     }
 }

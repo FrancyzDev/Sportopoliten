@@ -10,23 +10,23 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.Controllers
 {
-    public class OrderController : Controller
+    public class CartsController : Controller
     {
         private readonly ShopDbContext _context;
 
-        public OrderController(ShopDbContext context)
+        public CartsController(ShopDbContext context)
         {
             _context = context;
         }
 
-        // GET: OrderHistories
+        // GET: Carts
         public async Task<IActionResult> Index()
         {
-            var shopDbContext = _context.Orders.Include(o => o.User);
+            var shopDbContext = _context.Carts.Include(c => c.User);
             return View(await shopDbContext.ToListAsync());
         }
 
-        // GET: OrderHistories/Details/5
+        // GET: Carts/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +34,42 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var cart = await _context.Carts
+                .Include(c => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (cart == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(cart);
         }
 
-        // GET: OrderHistories/Create
+        // GET: Carts/Create
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
             return View();
         }
 
-        // POST: OrderHistories/Create
+        // POST: Carts/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Create([Bind("Id,UserId")] Cart cart)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orderHistory);
+                _context.Add(cart);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", cart.UserId);
+            return View(cart);
         }
 
-        // GET: OrderHistories/Edit/5
+        // GET: Carts/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +77,23 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory == null)
+            var cart = await _context.Carts.FindAsync(id);
+            if (cart == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", cart.UserId);
+            return View(cart);
         }
 
-        // POST: OrderHistories/Edit/5
+        // POST: Carts/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Status,TotalAmount,ShippingAddress,PaymentMethod,TrackingNumber")] OrderHistory orderHistory)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId")] Cart cart)
         {
-            if (id != orderHistory.Id)
+            if (id != cart.Id)
             {
                 return NotFound();
             }
@@ -102,12 +102,12 @@ namespace Sportopoliten.Controllers
             {
                 try
                 {
-                    _context.Update(orderHistory);
+                    _context.Update(cart);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderHistoryExists(orderHistory.Id))
+                    if (!CartExists(cart.Id))
                     {
                         return NotFound();
                     }
@@ -118,11 +118,11 @@ namespace Sportopoliten.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", orderHistory.UserId);
-            return View(orderHistory);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", cart.UserId);
+            return View(cart);
         }
 
-        // GET: OrderHistories/Delete/5
+        // GET: Carts/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +130,35 @@ namespace Sportopoliten.Controllers
                 return NotFound();
             }
 
-            var orderHistory = await _context.Orders
-                .Include(o => o.User)
+            var cart = await _context.Carts
+                .Include(c => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (orderHistory == null)
+            if (cart == null)
             {
                 return NotFound();
             }
 
-            return View(orderHistory);
+            return View(cart);
         }
 
-        // POST: OrderHistories/Delete/5
+        // POST: Carts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderHistory = await _context.Orders.FindAsync(id);
-            if (orderHistory != null)
+            var cart = await _context.Carts.FindAsync(id);
+            if (cart != null)
             {
-                _context.Orders.Remove(orderHistory);
+                _context.Carts.Remove(cart);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderHistoryExists(int id)
+        private bool CartExists(int id)
         {
-            return _context.Orders.Any(e => e.Id == id);
+            return _context.Carts.Any(e => e.Id == id);
         }
     }
 }

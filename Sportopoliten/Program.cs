@@ -1,4 +1,5 @@
 using Scalar.AspNetCore;
+using Sportopoliten.BLL.DTO;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
 using Sportopoliten.Extensions;
@@ -11,6 +12,7 @@ namespace Sportopoliten
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddDatabase(builder.Configuration);
 
             builder.Services.AddControllersWithViews();

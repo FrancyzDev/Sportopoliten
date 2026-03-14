@@ -16,12 +16,6 @@ namespace Sportopoliten.DAL.Configurations
 
             builder.Property(x => x.Description)
                 .HasMaxLength(2000);
-
-            builder
-                .HasMany(x => x.Variants)
-                .WithOne(x => x.Product)
-                .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

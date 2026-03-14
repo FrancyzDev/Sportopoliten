@@ -7,11 +7,10 @@ namespace Sportopoliten.DAL.Interfaces
         IRepository<User> Users { get; }
         IRepository<Cart> Carts { get; }
         IRepository<CartItem> CartItems { get; }
-        IRepository<OrderHistory> Orders { get; }
+        IRepository<Order> Orders { get; }
         IRepository<OrderItem> OrderItems { get; }
         IRepository<Product> Products { get; }
-        IRepository<ProductVariant> ProductVariants { get; }
-        IRepository<ProductVariantImages> ProductVariantImages { get; }
+        IRepository<ProductImage> ProductImages { get; }
         Task<int> SaveChangesAsync();
     }
 }

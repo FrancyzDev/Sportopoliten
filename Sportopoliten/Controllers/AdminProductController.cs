@@ -1,77 +1,70 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Sportopoliten.BLL.DTO;
-using Sportopoliten.ViewModels.Product;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Sportopoliten.BLL.DTO.Product;
 using Sportopoliten.BLL.Interfaces;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Sportopoliten.ViewModels;
+using Sportopoliten.ViewModels.Product;
 
-public class AdminProductController : Controller
+namespace Sportopoliten.Controllers
 {
-    private readonly IProductService _productService;
-    private readonly ICategoryService _categoryService;
-
-    private readonly IWebHostEnvironment _env;
-
-    public AdminProductController(IProductService productService, ICategoryService categoryService, IWebHostEnvironment env)
+    public class AdminProductController : Controller
     {
-        _productService = productService;
-        _categoryService = categoryService;
-        _env = env;
-    }
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IWebHostEnvironment _env;
 
-    [HttpGet]
-    async public Task<IActionResult> Create()
-    {
-        var model = new CreateProductViewModel
+        public AdminProductController(
+            IProductService productService,
+            ICategoryService categoryService,
+            IWebHostEnvironment env)
         {
-            Variants = new List<ProductVariantViewModel>
-        {
-            new ProductVariantViewModel() // Один вариант по умолчанию
+            _productService = productService;
+            _categoryService = categoryService;
+            _env = env;
         }
-        };
 
-        ViewBag.Categories = await _categoryService.GetAllCategoriesAsync(); // Метод для получения категорий
-
-        return View(model);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateProductViewModel model)
-    {
-        if (!ModelState.IsValid)
+        // GET: AdminProduct/Create
+        [HttpGet]
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+            var model = new CreateProductViewModel();
+
+            // Получаем категории и преобразуем в SelectList
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            Console.WriteLine(categories);
+            ViewBag.Categories = new SelectList(categories, "Id", "Title");
+
             return View(model);
         }
 
-        try
+        // POST: AdminProduct/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateProductViewModel model)
         {
-            var dto = new CreateProductDTO
+            if (!ModelState.IsValid)
             {
-                Title = model.Title,
-                Description = model.Description,
-                CategoryId = model.CategoryId,
-                Variants = new List<ProductVariantDTO>()
-            };
-
-            // Создаем директорию для изображений, если её нет
-            string uploadPath = Path.Combine(_env.WebRootPath, "images", "products");
-            if (!Directory.Exists(uploadPath))
-            {
-                Directory.CreateDirectory(uploadPath);
+                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                return View(model);
             }
 
-            foreach (var variant in model.Variants)
+            try
             {
+                // Создаем директорию для изображений, если её нет
+                string uploadPath = Path.Combine(_env.WebRootPath, "images", "products");
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                // Обрабатываем изображения
                 var imageUrls = new List<string>();
 
-                // Проверяем, есть ли изображения
-                if (variant.Images != null && variant.Images.Any())
+                if (model.Images != null && model.Images.Any())
                 {
-                    foreach (var image in variant.Images)
+                    foreach (var image in model.Images)
                     {
-                        // Проверяем, что файл не пустой
                         if (image != null && image.Length > 0)
                         {
                             // Проверяем расширение файла
@@ -102,39 +95,139 @@ public class AdminProductController : Controller
                     }
                 }
 
-                dto.Variants.Add(new ProductVariantDTO
+                // Создаем DTO
+                var dto = new CreateProductDTO
                 {
-                    Color = variant.Color,
-                    Size = variant.Size,
-                    Price = variant.Price,
-                    Stock = variant.Stock,
-                    Images = imageUrls
-                });
+                    Title = model.Title,
+                    Description = model.Description,
+                    CategoryId = model.CategoryId,
+                    Price = model.Price,
+                    ProductImages = imageUrls
+                };
+
+                await _productService.CreateProductAsync(dto);
+
+                TempData["Success"] = "Товар успешно создан!";
+                return RedirectToAction("Index");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                ModelState.AddModelError("", "Нет прав доступа для сохранения файлов. Проверьте права на папку wwwroot/images/products");
+            }
+            catch (DirectoryNotFoundException)
+            {
+                ModelState.AddModelError("", "Директория для сохранения не найдена");
+            }
+            catch (IOException ex)
+            {
+                ModelState.AddModelError("", $"Ошибка ввода-вывода при сохранении файла: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Произошла ошибка при создании товара: {ex.Message}");
             }
 
-            await _productService.CreateProductAsync(dto);
-
-            TempData["Success"] = "Товар успешно создан!";
-            return RedirectToAction("Index");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            ModelState.AddModelError("", "Нет прав доступа для сохранения файлов. Проверьте права на папку wwwroot/images/products");
-        }
-        catch (DirectoryNotFoundException ex)
-        {
-            ModelState.AddModelError("", "Директория для сохранения не найдена");
-        }
-        catch (IOException ex)
-        {
-            ModelState.AddModelError("", $"Ошибка ввода-вывода при сохранении файла: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", $"Произошла ошибка при создании товара: {ex.Message}");
+            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+            return View(model);
         }
 
-        ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
-        return View(model);
+        // GET: AdminProduct/Index
+        public async Task<IActionResult> Index()
+        {
+            var products = await _productService.GetAllProductsAsync();
+            return View(products);
+        }
+
+        // GET: AdminProduct/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound();
+
+            var model = new EditProductViewModel
+            {
+                Id = product.Id,
+                Title = product.Title,
+                Description = product.Description,
+                CategoryId = product.CategoryId ?? 0,
+                Price = product.Price,
+                ExistingImages = product.ProductImages?.Select(x => x.ImageUrl).ToList() ?? new()
+            };
+
+            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+            return View(model);
+        }
+
+        // POST: AdminProduct/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, EditProductViewModel model)
+        {
+            if (id != model.Id)
+                return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                return View(model);
+            }
+
+            try
+            {
+                var dto = new UpdateProductDTO
+                {
+                    Title = model.Title,
+                    Description = model.Description,
+                    CategoryId = model.CategoryId,
+                    Price = model.Price,
+                    ProductImages = model.ExistingImages ?? new()
+                };
+
+                await _productService.UpdateProductAsync(id, dto);
+                TempData["Success"] = "Товар успешно обновлен!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Ошибка при обновлении товара: {ex.Message}");
+                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                return View(model);
+            }
+        }
+
+        // GET: AdminProduct/Delete/5
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound();
+
+            return View(product);
+        }
+
+        // POST: AdminProduct/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            try
+            {
+                await _productService.DeleteProductAsync(id);
+                TempData["Success"] = "Товар успешно удален!";
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -46,16 +46,6 @@ namespace Sportopoliten.DAL.Repositories
             _dbSet.Remove(entity);
         }
 
-        public void Get(T entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<T>> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);

@@ -7,7 +7,7 @@
 
 <div class="container mt-4">
     <div class="row">
-        <div class="col-md-10 offset-md-1">
+        <div class="col-md-8 offset-md-2">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">@ViewData["Title"]</h4>
@@ -21,123 +21,61 @@
                         </div>
                     }
 
-                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
-                    {
-                        <div class="alert alert-danger">
-                            <strong>Исправьте следующие ошибки:</strong>
-                            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-0" })
-                        </div>
-                    }
-
-                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="productForm">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                        <!-- Основная информация о товаре -->
-                        <div class="row mb-3">
-                            <div class="col-md-8">
-                                <label asp-for="Title" class="form-label fw-bold">Название товара</label>
-                                <input asp-for="Title" class="form-control" placeholder="Введите название товара" />
-                                <span asp-validation-for="Title" class="text-danger small"></span>
+                        <!-- Название товара -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold"></label>
+                            <input asp-for="Title" class="form-control" placeholder="Введите название товара" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Введите описание товара"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <!-- Цена -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₴</span>
+                                    <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
                             </div>
-                            <div class="col-md-4">
-                                <label asp-for="CategoryId" class="form-label fw-bold">Категория</label>
+
+                            <!-- Категория -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoryId" class="form-label fw-bold"></label>
                                 <select asp-for="CategoryId" class="form-select">
-                                    <option value="">Выберите категорию</option>
+                                    <option value="">-- Выберите категорию --</option>
                                     @if (ViewBag.Categories != null)
                                     {
                                         foreach (var category in ViewBag.Categories)
                                         {
-                                            <option value="@category.Id">@category.Name</option>
+                                            <option value="@category.Value">@category.Text</option>
                                         }
                                     }
                                 </select>
-                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Изображения -->
                         <div class="mb-3">
-                            <label asp-for="Description" class="form-label fw-bold">Описание</label>
-                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Подробное описание товара"></textarea>
-                            <span asp-validation-for="Description" class="text-danger small"></span>
-                        </div>
-
-                        <hr class="my-4" />
-
-                        <!-- Варианты товара -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">Варианты товара</h5>
-                            <button type="button" id="addVariantBtn" class="btn btn-success btn-sm">
-                                <i class="fas fa-plus"></i> Добавить вариант
-                            </button>
-                        </div>
-
-                        <div id="variantsContainer">
-                            @if (Model.Variants != null && Model.Variants.Any())
-                            {
-                                for (int i = 0; i < Model.Variants.Count; i++)
-                                {
-                                    <div class="variant-item card mb-3">
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Цвет</label>
-                                                    <input asp-for="Variants[i].Color" class="form-control" placeholder="Например: Красный" />
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label">Размер</label>
-                                                    <input asp-for="Variants[i].Size" class="form-control" placeholder="S, M, L, XL" />
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label">Цена</label>
-                                                    <input asp-for="Variants[i].Price" class="form-control price-input" placeholder="0.00" />
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label">Количество</label>
-                                                    <input asp-for="Variants[i].Stock" class="form-control" placeholder="0" />
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Изображения</label>
-                                                    <input asp-for="Variants[i].Images" class="form-control" type="file" multiple accept="image/*" />
-                                                    <small class="text-muted">Можно выбрать несколько</small>
-                                                </div>
-                                            </div>
-                                            <button type="button" class="btn btn-danger btn-sm mt-2 remove-variant">
-                                                <i class="fas fa-trash"></i> Удалить вариант
-                                            </button>
-                                        </div>
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <!-- Шаблон для первого варианта -->
-                                <div class="variant-item card mb-3">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <label class="form-label">Цвет</label>
-                                                <input name="Variants[0].Color" class="form-control" placeholder="Например: Красный" />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Размер</label>
-                                                <input name="Variants[0].Size" class="form-control" placeholder="S, M, L, XL" />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Цена</label>
-                                                <input name="Variants[0].Price" class="form-control price-input" placeholder="0.00" />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Количество</label>
-                                                <input name="Variants[0].Stock" class="form-control" placeholder="0" />
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Изображения</label>
-                                                <input name="Variants[0].Images" class="form-control" type="file" multiple accept="image/*" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
+                            <label asp-for="Images" class="form-label fw-bold"></label>
+                            <input asp-for="Images" class="form-control" type="file" multiple accept="image/*" id="imageInput" />
+                            <small class="text-muted">Можно выбрать несколько изображений (jpg, jpeg, png, gif, webp)</small>
+                            
+                            <!-- Превью изображений -->
+                            <div id="imagePreview" class="row mt-2 g-2"></div>
                         </div>
 
                         <hr />
@@ -156,3 +94,39 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        $(document).ready(function() {
+            // Предпросмотр изображений
+            $('#imageInput').change(function() {
+                const preview = $('#imagePreview');
+                preview.empty();
+                
+                const files = this.files;
+                if (files.length > 0) {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            preview.append(`
+                                <div class="col-3">
+                                    <img src="${e.target.result}" class="img-thumbnail w-100" style="height: 100px; object-fit: cover;" />
+                                </div>
+                            `);
+                        }
+                        
+                        reader.readAsDataURL(file);
+                    }
+                } else {
+                    preview.append('<p class="text-muted">Нет выбранных изображений</p>');
+                }
+            });
+        });
+    </script>
+}

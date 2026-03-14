@@ -1,108 +1,142 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sportopoliten.BLL.DTO;
+using Sportopoliten.BLL.Interfaces;
+using Sportopoliten.BLL.DTO.Product;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
-using Sportopoliten.DAL.Interfaces;
-using Sportopoliten.DAL.Repositories;
 
-public class ProductService : IProductService
+namespace Sportopoliten.BLL.Services
 {
-    private readonly ShopDbContext _context;
-
-    public ProductService(ShopDbContext context)
+    public class ProductService : IProductService
     {
-        _context = context;
-    }
+        private readonly ShopDbContext _context;
 
-    public async Task CreateProductAsync(CreateProductDTO dto)
-    {
-        var product = new Product
+        public ProductService(ShopDbContext context)
         {
-            Title = dto.Title,
-            Description = dto.Description,
-            CategoryId = dto.CategoryId,
-            Variants = new List<ProductVariant>()
-        };
+            _context = context;
+        }
 
-        foreach (var variantDto in dto.Variants)
+        public async Task<Product> CreateProductAsync(CreateProductDTO dto)
         {
-            var variant = new ProductVariant
+            var product = new Product
             {
-                Color = variantDto.Color,
-                Size = variantDto.Size,
-                Price = variantDto.Price,
-                Stock = variantDto.Stock,
-                Images = new List<ProductVariantImages>()
+                Title = dto.Title,
+                Description = dto.Description,
+                CategoryId = dto.CategoryId,
+                Price = dto.Price,
+                ProductImages = new List<ProductImage>()
             };
 
-            foreach (var imageUrl in variantDto.Images)
+            foreach (var imageUrl in dto.ProductImages)
             {
-                variant.Images.Add(new ProductVariantImages
+                product.ProductImages.Add(new ProductImage
                 {
                     ImageUrl = imageUrl
                 });
             }
 
-            product.Variants.Add(variant);
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+            return product;
         }
 
-        _context.Products.Add(product);
-
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateProductAsync(int productId, UpdateProductDTO dto)
-    {
-        var product = await _context.Products
-            .Include(p => p.Variants)
-            .ThenInclude(v => v.Images)
-            .FirstOrDefaultAsync(p => p.Id == productId);
-
-        if (product == null)
+        public async Task UpdateProductAsync(int productId, UpdateProductDTO dto)
         {
-            throw new KeyNotFoundException("Товар не найден");
-        }
+            var product = await _context.Products
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(p => p.Id == productId);
 
-        product.Title = dto.Title;
-        product.Description = dto.Description;
-        product.CategoryId = dto.CategoryId;
-
-        //product.Variants.Clear();
-        _context.ProductVariants.RemoveRange(product.Variants);
-
-        foreach (var variantDto in dto.Variants)
-        {
-            var variant = new ProductVariant
+            if (product == null)
             {
-                Color = variantDto.Color,
-                Size = variantDto.Size,
-                Price = variantDto.Price,
-                Stock = variantDto.Stock,
-                Images = new List<ProductVariantImages>() 
-            };
-
-            foreach (var imageUrl in variantDto.Images)
-            {
-                variant.Images.Add(new ProductVariantImages 
-                { 
-                    ImageUrl = imageUrl 
-                });
+                throw new KeyNotFoundException("Товар не найден");
             }
 
-            product.Variants.Add(variant);
+            // Обновляем основные поля (без Color и Size)
+            product.Title = dto.Title;
+            product.Description = dto.Description;
+            product.CategoryId = dto.CategoryId;
+            product.Price = dto.Price;
+
+            // Удаляем старые изображения
+            if (product.ProductImages != null && product.ProductImages.Any())
+            {
+                _context.ProductImages.RemoveRange(product.ProductImages);
+            }
+
+            // Добавляем новые изображения
+            if (dto.ProductImages != null && dto.ProductImages.Any())
+            {
+                product.ProductImages = new List<ProductImage>();
+                foreach (var imageUrl in dto.ProductImages)
+                {
+                    product.ProductImages.Add(new ProductImage
+                    {
+                        ImageUrl = imageUrl,
+                        ProductId = product.Id
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
 
-        await _context.SaveChangesAsync();
-    }
+        public async Task DeleteProductAsync(int productId)
+        {
+            var product = await _context.Products
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(p => p.Id == productId);
 
-    public async Task DeleteProductAsync(int productId)
-    {
-        var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+                throw new KeyNotFoundException("Товар не найден");
 
-        if (product == null)
-            throw new KeyNotFoundException("Товар не найден");
+            // Удаляем связанные изображения
+            if (product.ProductImages != null && product.ProductImages.Any())
+            {
+                _context.ProductImages.RemoveRange(product.ProductImages);
+            }
 
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
+            // Удаляем товар
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+        }
+
+        // Дополнительные методы
+        public async Task<Product?> GetProductByIdAsync(int id)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
+        {
+            return await _context.Products
+                .Where(p => p.CategoryId == categoryId)
+                .Include(p => p.ProductImages)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetPagedProductsAsync(int page, int pageSize)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalProductsCountAsync()
+        {
+            return await _context.Products.CountAsync();
+        }
     }
 }

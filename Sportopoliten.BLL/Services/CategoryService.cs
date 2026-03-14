@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sportopoliten.BLL.DTO;
+using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
@@ -24,7 +24,7 @@ namespace Sportopoliten.BLL.Services
             return categories.Select(c => new Category
             {
                 Id = c.Id,
-                Name = c.Name
+                Title = c.Title
             });
         }
 
@@ -40,15 +40,15 @@ namespace Sportopoliten.BLL.Services
             return new Category
             {
                 Id = category.Id,
-                Name = category.Name
+                Title = category.Title
             };
         }
 
-        public async Task<Category> CreateCategoryAsync(Category dto)
+        public async Task<Category> CreateCategoryAsync(CreateCategoryDTO dto)
         {
             var category = new Category
             {
-                Name = dto.Name
+                Title = dto.Title
             };
 
             _context.Categories.Add(category);
@@ -57,11 +57,11 @@ namespace Sportopoliten.BLL.Services
             return new Category
             {
                 Id = category.Id,
-                Name = category.Name
+                Title = category.Title
             };
         }
 
-        public async Task UpdateCategoryAsync(int id, Category dto)
+        public async Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto)
         {
             var category = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -71,7 +71,7 @@ namespace Sportopoliten.BLL.Services
                 throw new KeyNotFoundException($"Категория с ID {id} не найдена");
             }
 
-            category.Name = dto.Name;
+            category.Title = dto.Title;
 
             await _context.SaveChangesAsync();
         }

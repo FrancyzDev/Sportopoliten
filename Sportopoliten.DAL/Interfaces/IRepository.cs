@@ -9,9 +9,7 @@ namespace Sportopoliten.DAL.Interfaces
         Task<T> GetByIdAsync(int id);
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
-        void Get(T entity);
         void Update(T entity);
         void Delete(T entity);
-        Task<IEnumerable<T>> GetAll();
     }
 }

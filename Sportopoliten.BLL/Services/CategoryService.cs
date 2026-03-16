@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sportopoliten.BLL.DTO;
+using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
@@ -17,51 +17,33 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
         {
-            var categories = await _context.Categories
+            return await _context.Categories
                 .Include(c => c.Products)
                 .ToListAsync();
-
-            return categories.Select(c => new Category
-            {
-                Id = c.Id,
-                Name = c.Name
-            });
         }
 
         public async Task<Category?> GetCategoryByIdAsync(int id)
         {
-            var category = await _context.Categories
+            return await _context.Categories
                 .Include(c => c.Products)
                 .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (category == null)
-                return null;
-
-            return new Category
-            {
-                Id = category.Id,
-                Name = category.Name
-            };
         }
 
-        public async Task<Category> CreateCategoryAsync(Category dto)
+        public async Task<Category> CreateCategoryAsync(CreateCategoryDTO dto)
         {
             var category = new Category
             {
-                Name = dto.Name
+                Title = dto.Title,
+                ImageUrl = dto.ImageUrl // Добавляем сохранение изображения
             };
 
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return new Category
-            {
-                Id = category.Id,
-                Name = category.Name
-            };
+            return category;
         }
 
-        public async Task UpdateCategoryAsync(int id, Category dto)
+        public async Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto)
         {
             var category = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -71,7 +53,11 @@ namespace Sportopoliten.BLL.Services
                 throw new KeyNotFoundException($"Категория с ID {id} не найдена");
             }
 
-            category.Name = dto.Name;
+            category.Title = dto.Title;
+            if (dto.ImageUrl != null)
+            {
+                category.ImageUrl = dto.ImageUrl;
+            }
 
             await _context.SaveChangesAsync();
         }

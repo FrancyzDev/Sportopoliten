@@ -1,35 +1,137 @@
-﻿@model IEnumerable<Sportopoliten.DAL.Entities.Category>
+﻿@model IEnumerable<Sportopoliten.BLL.DTO.Category.CategoryDTO>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Управление категориями";
+    Layout = "_Layout";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-folder me-2"></i>@ViewData["Title"]
+        </h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Создать категорию
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var category in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm category-card">
+                        @if (!string.IsNullOrEmpty(category.ImageUrl))
+                        {
+                            <img src="@category.ImageUrl" class="card-img-top" style="height: 200px; object-fit: cover;" alt="@category.Title">
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-folder fa-4x text-muted"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@category.Title</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-box me-1"></i>Товаров: @category.ProductsCount
+                                </small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="btn-group w-100">
+                                <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> Редактировать
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Вы уверены, что хотите удалить категорию &quot;@category.Title&quot;? Это может повлиять на товары в этой категории.');">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-folder-open fa-5x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Категории отсутствуют</h4>
+                    <p class="text-muted mb-4">Создайте первую категорию, чтобы структурировать товары</p>
+                    <a asp-action="Create" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Создать категорию
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .category-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .card-img-top {
+            transition: transform 0.5s ease;
+        }
+        
+        .category-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        
+        .btn-group .btn {
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-group .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            color: #fff;
+            background-color: #ffc107;
+            border: none;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+    </style>
 }
-    </tbody>
-</table>

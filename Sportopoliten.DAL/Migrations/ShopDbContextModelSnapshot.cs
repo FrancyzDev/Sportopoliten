@@ -55,14 +55,14 @@ namespace Sportopoliten.DAL.Migrations
                     b.Property<int>("Count")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductVariantId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CartId");
 
-                    b.HasIndex("ProductVariantId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("CartItems");
                 });
@@ -75,7 +75,10 @@ namespace Sportopoliten.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -84,7 +87,7 @@ namespace Sportopoliten.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.OrderHistory", b =>
+            modelBuilder.Entity("Sportopoliten.DAL.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -103,10 +106,9 @@ namespace Sportopoliten.DAL.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -142,13 +144,13 @@ namespace Sportopoliten.DAL.Migrations
                     b.Property<decimal>("PriceAtPurchase")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("ProductVariantId")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("Subtotal")
                         .HasColumnType("decimal(18,2)");
@@ -157,7 +159,7 @@ namespace Sportopoliten.DAL.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("ProductVariantId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems");
                 });
@@ -170,12 +172,15 @@ namespace Sportopoliten.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -189,41 +194,7 @@ namespace Sportopoliten.DAL.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductVariant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Color")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Size")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("Stock")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductVariants");
-                });
-
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductVariantImages", b =>
+            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -237,14 +208,14 @@ namespace Sportopoliten.DAL.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductVariantId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductVariantId");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariantImages");
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.User", b =>
@@ -317,18 +288,18 @@ namespace Sportopoliten.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sportopoliten.DAL.Entities.ProductVariant", "ProductVariant")
+                    b.HasOne("Sportopoliten.DAL.Entities.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductVariantId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Cart");
 
-                    b.Navigation("ProductVariant");
+                    b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.OrderHistory", b =>
+            modelBuilder.Entity("Sportopoliten.DAL.Entities.Order", b =>
                 {
                     b.HasOne("Sportopoliten.DAL.Entities.User", "User")
                         .WithMany()
@@ -341,54 +312,41 @@ namespace Sportopoliten.DAL.Migrations
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.OrderItem", b =>
                 {
-                    b.HasOne("Sportopoliten.DAL.Entities.OrderHistory", "Order")
+                    b.HasOne("Sportopoliten.DAL.Entities.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sportopoliten.DAL.Entities.ProductVariant", "ProductVariant")
+                    b.HasOne("Sportopoliten.DAL.Entities.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductVariantId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
 
-                    b.Navigation("ProductVariant");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.Product", b =>
                 {
                     b.HasOne("Sportopoliten.DAL.Entities.Category", "Category")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductVariant", b =>
+            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductImage", b =>
                 {
                     b.HasOne("Sportopoliten.DAL.Entities.Product", "Product")
-                        .WithMany("Variants")
+                        .WithMany("ProductImages")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductVariantImages", b =>
-                {
-                    b.HasOne("Sportopoliten.DAL.Entities.ProductVariant", "ProductVariant")
-                        .WithMany("Images")
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.Cart", b =>
@@ -401,19 +359,14 @@ namespace Sportopoliten.DAL.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.OrderHistory", b =>
+            modelBuilder.Entity("Sportopoliten.DAL.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.Product", b =>
                 {
-                    b.Navigation("Variants");
-                });
-
-            modelBuilder.Entity("Sportopoliten.DAL.Entities.ProductVariant", b =>
-                {
-                    b.Navigation("Images");
+                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("Sportopoliten.DAL.Entities.User", b =>

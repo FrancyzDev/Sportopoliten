@@ -1,4 +1,4 @@
-﻿using Sportopoliten.BLL.DTO;
+﻿using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.BLL.Interfaces
@@ -7,8 +7,8 @@ namespace Sportopoliten.BLL.Interfaces
     {
         Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Task<Category?> GetCategoryByIdAsync(int id);
-        Task<Category> CreateCategoryAsync(Category dto);
-        Task UpdateCategoryAsync(int id, Category dto);
+        Task<Category> CreateCategoryAsync(CreateCategoryDTO dto);
+        Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto);
         Task DeleteCategoryAsync(int id);
     }
 }

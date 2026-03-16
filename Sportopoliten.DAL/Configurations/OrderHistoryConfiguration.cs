@@ -4,9 +4,9 @@ using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.DAL.Configurations
 {
-    public class OrderHistoryConfiguration : IEntityTypeConfiguration<OrderHistory>
+    public class OrderHistoryConfiguration : IEntityTypeConfiguration<Order>
     {
-        public void Configure(EntityTypeBuilder<OrderHistory> builder)
+        public void Configure(EntityTypeBuilder<Order> builder)
         {
             builder.HasKey(x => x.Id);
 

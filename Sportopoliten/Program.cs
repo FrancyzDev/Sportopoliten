@@ -3,6 +3,7 @@ using Sportopoliten.BLL.DTO;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
 using Sportopoliten.Extensions;
+using System.Runtime.InteropServices;
 
 namespace Sportopoliten
 {
@@ -56,7 +57,7 @@ namespace Sportopoliten
 
             app.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}")
+                    pattern: "{controller=Categories}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

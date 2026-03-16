@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Sportopoliten.DAL.Entities
+﻿namespace Sportopoliten.DAL.Entities
 {
-    
-        public class Product
-        {
-            public int Id { get; set; }
-            public string? Title { get; set; }
-            public string? Description { get; set; }
-            public ICollection<ProductVariant> Variants { get; set; } = [];
+    public class Product
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public decimal Price { get; set; }
+        public int? CategoryId { get; set; }
+        public Category? Category { get; set; }
 
-            public int? CategoryId { get; set; }
-            public Category Category { get; set; }
+        public List<ProductImage> ProductImages { get; set; } = new();
     }
 }

@@ -16,9 +16,9 @@ namespace Sportopoliten.DAL.Configurations
                 .HasForeignKey(x => x.CartId);
 
             builder
-                .HasOne(x => x.ProductVariant)
+                .HasOne(x => x.Product)
                 .WithMany()
-                .HasForeignKey(x => x.ProductVariantId);
+                .HasForeignKey(x => x.ProductId);
         }
     }
 }

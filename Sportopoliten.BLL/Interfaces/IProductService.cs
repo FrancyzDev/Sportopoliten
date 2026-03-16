@@ -1,8 +1,14 @@
-﻿using Sportopoliten.BLL.DTO;
+﻿using Sportopoliten.DAL.Entities;
+using Sportopoliten.BLL.DTO.Product;
 
-public interface IProductService
+namespace Sportopoliten.BLL.Interfaces
 {
-    Task CreateProductAsync(CreateProductDTO dto);
-    Task UpdateProductAsync(int productId, UpdateProductDTO dto);
-    Task DeleteProductAsync(int productId);
+    public interface IProductService
+    {
+        Task<IEnumerable<Product>> GetAllProductsAsync();
+        Task<Product?> GetProductByIdAsync(int id);
+        Task<Product> CreateProductAsync(CreateProductDTO dto);
+        Task UpdateProductAsync(int id, UpdateProductDTO dto);
+        Task DeleteProductAsync(int id);
+    }
 }

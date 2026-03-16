@@ -25,11 +25,11 @@ namespace Sportopoliten.DAL.Configurations
             builder.Property(x => x.Count)
                 .IsRequired();
 
-            builder
-                .HasOne(x => x.ProductVariant)
+            builder.HasOne(x => x.Product)
                 .WithMany()
-                .HasForeignKey(x => x.ProductVariantId)
+                .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

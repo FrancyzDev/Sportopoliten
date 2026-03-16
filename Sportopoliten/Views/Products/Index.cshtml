@@ -87,7 +87,9 @@
                                         }
                                     </td>
                                     <td>
-                                        <span class="fw-bold text-primary">@product.Price.ToString("C")</span>
+                                        <span class="fw-bold text-primary">
+                                            @product.Price.ToString() ₴
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -104,7 +106,7 @@
                                             <a asp-action="Delete" asp-route-id="@product.Id"
                                                    class="btn btn-sm btn-danger"
                                                    title="Удалить"
-                                                   onclick="return confirm('Вы уверены, что хотите удалить товар &quot;@product.Title&quot;?')">
+                                            >
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>

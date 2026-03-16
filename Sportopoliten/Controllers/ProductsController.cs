@@ -3,18 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Sportopoliten.BLL.DTO.Product;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.ViewModels;
-using Sportopoliten.ViewModels.Product;
+using Sportopoliten.ViewModels.ProductViewModels;
 
 namespace Sportopoliten.Controllers
 {
-    public class AdminProductController : Controller
+    public class ProductsController : Controller
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IWebHostEnvironment _env;
 
-        public AdminProductController(
+        public ProductsController(
             IProductService productService,
             ICategoryService categoryService,
             IWebHostEnvironment env)
@@ -36,6 +35,19 @@ namespace Sportopoliten.Controllers
             ViewBag.Categories = new SelectList(categories, "Id", "Title");
 
             return View(model);
+        }
+
+        // GET: AdminProduct/Details/5
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return View(product);
         }
 
         // POST: AdminProduct/Create
@@ -156,7 +168,10 @@ namespace Sportopoliten.Controllers
                 ExistingImages = product.ProductImages?.Select(x => x.ImageUrl).ToList() ?? new()
             };
 
-            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+            // Получаем категории и создаем SelectList
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            ViewBag.Categories = new SelectList(categories, "Id", "Title");  // Важно!
+
             return View(model);
         }
 
@@ -176,16 +191,92 @@ namespace Sportopoliten.Controllers
 
             try
             {
+                // Создаем директорию для изображений, если её нет
+                string uploadPath = Path.Combine(_env.WebRootPath, "images", "products");
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                // Обрабатываем новые изображения
+                var newImageUrls = new List<string>();
+
+                if (model.NewImages != null && model.NewImages.Any())
+                {
+                    foreach (var image in model.NewImages)
+                    {
+                        if (image != null && image.Length > 0)
+                        {
+                            // Проверяем расширение файла
+                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                            var fileExtension = Path.GetExtension(image.FileName).ToLowerInvariant();
+
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                ModelState.AddModelError("", $"Файл {image.FileName} имеет неподдерживаемый формат.");
+                                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                                return View(model);
+                            }
+
+                            // Генерируем уникальное имя файла
+                            var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                            var relativePath = Path.Combine("images", "products", fileName);
+                            var filePath = Path.Combine(_env.WebRootPath, relativePath);
+
+                            // Сохраняем файл
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await image.CopyToAsync(stream);
+                            }
+
+                            // Добавляем относительный путь к изображению
+                            newImageUrls.Add("/" + relativePath.Replace("\\", "/"));
+                        }
+                    }
+                }
+
+                // Определяем, какие изображения нужно оставить
+                var imagesToKeep = new List<string>();
+                if (model.ExistingImages != null)
+                {
+                    if (model.ImagesToDelete != null && model.ImagesToDelete.Any())
+                    {
+                        // Оставляем только те, которые не отмечены для удаления
+                        imagesToKeep = model.ExistingImages
+                            .Where(img => !model.ImagesToDelete.Contains(img))
+                            .ToList();
+
+                        // Удаляем файлы с диска
+                        foreach (var imageToDelete in model.ImagesToDelete)
+                        {
+                            var filePath = Path.Combine(_env.WebRootPath, imageToDelete.TrimStart('/').Replace("/", "\\"));
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                System.IO.File.Delete(filePath);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        imagesToKeep = model.ExistingImages;
+                    }
+                }
+
+                // Объединяем старые (неудаленные) и новые изображения
+                var allImages = imagesToKeep.Concat(newImageUrls).ToList();
+
+                // Создаем DTO
                 var dto = new UpdateProductDTO
                 {
                     Title = model.Title,
                     Description = model.Description,
                     CategoryId = model.CategoryId,
                     Price = model.Price,
-                    ProductImages = model.ExistingImages ?? new()
+                    ProductImages = allImages
                 };
 
                 await _productService.UpdateProductAsync(id, dto);
+
                 TempData["Success"] = "Товар успешно обновлен!";
                 return RedirectToAction(nameof(Index));
             }

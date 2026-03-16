@@ -1,25 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
-using Sportopoliten.Models;
-using System.Diagnostics;
+using Sportopoliten.BLL.Interfaces;
+using Sportopoliten.ViewModels.HomeViewModels;
 
 namespace Sportopoliten.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ICategoryService _categoryService;
+
+        public HomeController(ICategoryService categoryService)
         {
-            return View();
+            _categoryService = categoryService;
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            var viewModel = new HomeViewModel
+            {
+                Categories = await _categoryService.GetAllCategoriesAsync(),
+            };
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(viewModel);
         }
     }
 }

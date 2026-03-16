@@ -1,0 +1,251 @@
+﻿@model Sportopoliten.ViewModels.CategoryViewModels.EditCategoryViewModel
+
+@{
+    ViewData["Title"] = "Редактирование категории";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-warning text-dark py-3 rounded-top-4">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>@ViewData["Title"]: @Model.Title
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CurrentImageUrl" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Название категории -->
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-bold">
+                                <i class="fas fa-tag me-2 text-primary"></i>Название категории
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Введите название категории" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Текущее изображение (только для просмотра) -->
+                        @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
+                        {
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-image me-2 text-primary"></i>Текущее изображение
+                                </label>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <img src="@Model.CurrentImageUrl" class="img-thumbnail" style="max-height: 150px;" alt="@Model.Title" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Если вы хотите заменить изображение, загрузите новое ниже.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Новое изображение -->
+                        <div class="mb-4">
+                            <label asp-for="Image" class="form-label fw-bold">
+                                <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>Новое изображение
+                            </label>
+                            <div class="upload-area border border-2 border-dashed rounded-3 p-4 text-center" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Перетащите файл сюда или нажмите для выбора</h5>
+                                <p class="text-muted mb-3">Рекомендуемый размер: 300x300px. Форматы: JPG, PNG, WEBP, SVG</p>
+                                <input asp-for="Image" class="form-control d-none" type="file" accept="image/*" id="imageInput" />
+                                <button type="button" class="btn btn-outline-primary" id="selectImageBtn">
+                                    <i class="fas fa-upload me-2"></i>Выбрать файл
+                                </button>
+                            </div>
+                            <small class="text-muted">Оставьте пустым, если не хотите менять изображение</small>
+
+                            <!-- Превью нового изображения -->
+                            <div id="imagePreview" class="mt-3 text-center" style="display: none;">
+                                <p class="mb-2 fw-bold">Новое изображение:</p>
+                                <img src="" class="img-thumbnail" style="max-height: 150px;" alt="Preview" />
+                                <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImageBtn">
+                                    <i class="fas fa-times"></i> Отменить выбор
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Назад к списку
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-lg px-5">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Ждем полной загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM полностью загружен - Edit');
+            
+            // Получаем элементы
+            const imageInput = document.getElementById('imageInput');
+            const selectImageBtn = document.getElementById('selectImageBtn');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = imagePreview ? imagePreview.querySelector('img') : null;
+            const removeImageBtn = document.getElementById('removeImageBtn');
+            const uploadArea = document.getElementById('uploadArea');
+            
+            console.log('imageInput:', imageInput);
+            console.log('selectImageBtn:', selectImageBtn);
+            
+            // Проверяем, что элементы найдены
+            if (!imageInput) {
+                console.error('imageInput не найден!');
+                return;
+            }
+            
+            if (!selectImageBtn) {
+                console.error('selectImageBtn не найден!');
+                return;
+            }
+            
+            // Кнопка выбора файла - просто вызываем click на скрытом input
+            selectImageBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Кнопка нажата');
+                imageInput.click(); // Это должно открыть диалог выбора файла
+            });
+            
+            // Обработка выбора файла
+            imageInput.addEventListener('change', function(e) {
+                console.log('Файл выбран:', this.files);
+                
+                if (this.files && this.files.length > 0) {
+                    const file = this.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        if (previewImg && imagePreview) {
+                            previewImg.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                        }
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Удаление изображения
+            if (removeImageBtn) {
+                removeImageBtn.addEventListener('click', function() {
+                    imageInput.value = '';
+                    if (imagePreview) imagePreview.style.display = 'none';
+                    if (previewImg) previewImg.src = '';
+                });
+            }
+            
+            // Drag and drop
+            if (uploadArea) {
+                uploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.backgroundColor = '#e9ecef';
+                    this.style.borderColor = '#764ba2';
+                });
+                
+                uploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.style.backgroundColor = '#f8f9fa';
+                    this.style.borderColor = '#667eea';
+                });
+                
+                uploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.backgroundColor = '#f8f9fa';
+                    this.style.borderColor = '#667eea';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        imageInput.files = files;
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (previewImg && imagePreview) {
+                                previewImg.src = e.target.result;
+                                imagePreview.style.display = 'block';
+                            }
+                        }
+                        reader.readAsDataURL(files[0]);
+                    }
+                });
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .border-dashed {
+            border-style: dashed !important;
+            border-width: 2px !important;
+            border-color: #667eea !important;
+        }
+        
+        .upload-area {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+        
+            .upload-area:hover {
+                background-color: #e9ecef;
+                border-color: #764ba2 !important;
+            }
+        
+            .upload-area i {
+                transition: transform 0.3s ease;
+            }
+        
+            .upload-area:hover i {
+                transform: translateY(-5px);
+            }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+        }
+        
+            .btn-warning:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+            }
+        
+        .img-thumbnail {
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+            .img-thumbnail:hover {
+                transform: scale(1.05);
+            }
+    </style>
+}

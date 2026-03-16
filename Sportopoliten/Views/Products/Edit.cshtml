@@ -1,7 +1,7 @@
-﻿@model Sportopoliten.ViewModels.Product.CreateProductViewModel
+﻿@model Sportopoliten.ViewModels.ProductViewModels.EditProductViewModel
 
 @{
-    ViewData["Title"] = "Создание товара";
+    ViewData["Title"] = "Редактирование товара";
     Layout = "_Layout";
 }
 
@@ -9,21 +9,16 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">@ViewData["Title"]</h4>
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>@ViewData["Title"]
+                    </h4>
                 </div>
                 <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
-                        
+                        <input type="hidden" asp-for="Id" />
+
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <!-- Название товара -->
@@ -54,27 +49,49 @@
                             <!-- Категория -->
                             <div class="col-md-6 mb-3">
                                 <label asp-for="CategoryId" class="form-label fw-bold"></label>
-                                <select asp-for="CategoryId" class="form-select">
+                                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
                                     <option value="">-- Выберите категорию --</option>
-                                    @if (ViewBag.Categories != null)
-                                    {
-                                        foreach (var category in ViewBag.Categories)
-                                        {
-                                            <option value="@category.Value">@category.Text</option>
-                                        }
-                                    }
                                 </select>
                                 <span asp-validation-for="CategoryId" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <!-- Изображения -->
+                        <!-- Существующие изображения -->
+                        @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Текущие изображения</label>
+                                <div class="row g-2">
+                                    @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                                    {
+                                        <div class="col-3 position-relative">
+                                            <div class="card">
+                                                <img src="@Model.ExistingImages[i]" class="card-img-top" style="height: 100px; object-fit: cover;" alt="Product image" />
+                                                <div class="card-body p-1 text-center">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox"
+                                                               name="ImagesToDelete" value="@Model.ExistingImages[i]"
+                                                               id="delete_@i" />
+                                                        <label class="form-check-label small" for="delete_@i">
+                                                            Удалить
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <small class="text-muted">Отметьте изображения для удаления</small>
+                            </div>
+                        }
+
+                        <!-- Новые изображения -->
                         <div class="mb-3">
-                            <label asp-for="Images" class="form-label fw-bold"></label>
-                            <input asp-for="Images" class="form-control" type="file" multiple accept="image/*" id="imageInput" />
-                            <small class="text-muted">Можно выбрать несколько изображений (jpg, jpeg, png, gif, webp)</small>
+                            <label asp-for="NewImages" class="form-label fw-bold"></label>
+                            <input asp-for="NewImages" class="form-control" type="file" multiple accept="image/*" id="imageInput" />
+                            <small class="text-muted">Можно выбрать несколько новых изображений (jpg, jpeg, png, gif, webp)</small>
                             
-                            <!-- Превью изображений -->
+                            <!-- Превью новых изображений -->
                             <div id="imagePreview" class="row mt-2 g-2"></div>
                         </div>
 
@@ -84,8 +101,8 @@
                             <a asp-action="Index" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Назад к списку
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Создать товар
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Сохранить изменения
                             </button>
                         </div>
                     </form>
@@ -99,20 +116,20 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    
+
     <script>
         $(document).ready(function() {
-            // Предпросмотр изображений
+            // Предпросмотр новых изображений
             $('#imageInput').change(function() {
                 const preview = $('#imagePreview');
                 preview.empty();
-                
+
                 const files = this.files;
                 if (files.length > 0) {
                     for (let i = 0; i < files.length; i++) {
                         const file = files[i];
                         const reader = new FileReader();
-                        
+
                         reader.onload = function(e) {
                             preview.append(`
                                 <div class="col-3">
@@ -120,11 +137,9 @@
                                 </div>
                             `);
                         }
-                        
+
                         reader.readAsDataURL(file);
                     }
-                } else {
-                    preview.append('<p class="text-muted">Нет выбранных изображений</p>');
                 }
             });
         });

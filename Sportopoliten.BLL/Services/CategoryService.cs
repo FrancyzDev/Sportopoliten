@@ -17,48 +17,30 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
         {
-            var categories = await _context.Categories
+            return await _context.Categories
                 .Include(c => c.Products)
                 .ToListAsync();
-
-            return categories.Select(c => new Category
-            {
-                Id = c.Id,
-                Title = c.Title
-            });
         }
 
         public async Task<Category?> GetCategoryByIdAsync(int id)
         {
-            var category = await _context.Categories
+            return await _context.Categories
                 .Include(c => c.Products)
                 .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (category == null)
-                return null;
-
-            return new Category
-            {
-                Id = category.Id,
-                Title = category.Title
-            };
         }
 
         public async Task<Category> CreateCategoryAsync(CreateCategoryDTO dto)
         {
             var category = new Category
             {
-                Title = dto.Title
+                Title = dto.Title,
+                ImageUrl = dto.ImageUrl // Добавляем сохранение изображения
             };
 
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return new Category
-            {
-                Id = category.Id,
-                Title = category.Title
-            };
+            return category;
         }
 
         public async Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto)
@@ -72,6 +54,10 @@ namespace Sportopoliten.BLL.Services
             }
 
             category.Title = dto.Title;
+            if (dto.ImageUrl != null)
+            {
+                category.ImageUrl = dto.ImageUrl;
+            }
 
             await _context.SaveChangesAsync();
         }

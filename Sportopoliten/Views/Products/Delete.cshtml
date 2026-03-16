@@ -1,0 +1,97 @@
+﻿@model Sportopoliten.DAL.Entities.Product
+
+@{
+    ViewData["Title"] = "Удаление товара";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@ViewData["Title"]
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Вы уверены, что хотите удалить этот товар? Это действие нельзя отменить.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            @if (Model.ProductImages != null && Model.ProductImages.Any())
+                            {
+                                <img src="@Model.ProductImages.First().ImageUrl"
+                                     class="img-thumbnail"
+                                     style="max-height: 200px; max-width: 100%; object-fit: contain;"
+                                     alt="@Model.Title" />
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center p-4">
+                                    <i class="fas fa-image fa-4x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th style="width: 30%">ID</th>
+                                    <td>@Model.Id</td>
+                                </tr>
+                                <tr>
+                                    <th>Название</th>
+                                    <td>@Model.Title</td>
+                                </tr>
+                                <tr>
+                                    <th>Описание</th>
+                                    <td>@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</td>
+                                </tr>
+                                <tr>
+                                    <th>Категория</th>
+                                    <td>
+                                        @if (Model.Category != null)
+                                        {
+                                            @Model.Category.Title
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Цена</th>
+                                    <td><span class="fw-bold">@Model.Price.ToString() ₴</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Изображений</th>
+                                    <td>@(Model.ProductImages?.Count ?? 0)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Назад к списку
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Подтвердить удаление
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

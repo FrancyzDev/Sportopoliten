@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sportopoliten.ViewModels.Product
+namespace Sportopoliten.ViewModels.ProductViewModels
 {
-    public class EditProductViewModel
+    public class CreateProductViewModel
     {
-        public int Id { get; set; }
-
         [Required(ErrorMessage = "Название товара обязательно")]
         [StringLength(200, MinimumLength = 3, ErrorMessage = "Название должно быть от 3 до 200 символов")]
         [Display(Name = "Название товара")]
@@ -20,22 +18,11 @@ namespace Sportopoliten.ViewModels.Product
         [Display(Name = "Цена")]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Количество на складе обязательно")]
-        [Range(0, 999999, ErrorMessage = "Количество должно быть от 0 до 999999")]
-        [Display(Name = "Количество на складе")]
-        public int Stock { get; set; }
-
         [Required(ErrorMessage = "Категория обязательна")]
         [Display(Name = "Категория")]
         public int CategoryId { get; set; }
 
-        [Display(Name = "Новые изображения")]
-        public List<IFormFile>? NewImages { get; set; }
-
-        [Display(Name = "Существующие изображения")]
-        public List<string>? ExistingImages { get; set; }
-
-        [Display(Name = "Изображения для удаления")]
-        public List<int>? ImagesToDelete { get; set; }
+        [Display(Name = "Изображения товара")]
+        public List<IFormFile>? Images { get; set; }
     }
 }

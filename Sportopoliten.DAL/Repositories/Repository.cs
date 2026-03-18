@@ -50,5 +50,36 @@ namespace Sportopoliten.DAL.Repositories
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
+
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
+
+        public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
+        {
+            if (predicate != null)
+            {
+                return await _dbSet.CountAsync(predicate);
+            }
+            return await _dbSet.CountAsync();
+        }
+        public async Task<IEnumerable<T>> GetWithQueryAsync(Func<IQueryable<T>, IQueryable<T>> queryOperation)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            query = queryOperation(query);
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<T?> GetSingleWithQueryAsync(Func<IQueryable<T>, IQueryable<T>> queryOperation)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            query = queryOperation(query);
+
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }

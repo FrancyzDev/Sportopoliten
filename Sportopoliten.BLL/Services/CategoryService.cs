@@ -3,30 +3,33 @@ using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
+using Sportopoliten.DAL.Interfaces;
 
 namespace Sportopoliten.BLL.Services
 {
     public class CategoryService : ICategoryService
     {
-        private readonly ShopDbContext _context;
+        IUnitOfWork Database { get; set; }
 
-        public CategoryService(ShopDbContext context)
+        public CategoryService(IUnitOfWork uow)
         {
-            _context = context;
+            Database = uow;
         }
 
         public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
         {
-            return await _context.Categories
+            return await Database.Categories.GetWithQueryAsync(query => query
                 .Include(c => c.Products)
-                .ToListAsync();
+            );
+                
         }
 
         public async Task<Category?> GetCategoryByIdAsync(int id)
         {
-            return await _context.Categories
+            return await Database.Categories.GetSingleWithQueryAsync(query => query
                 .Include(c => c.Products)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .Where(c => c.Id == id)
+            );
         }
 
         public async Task<Category> CreateCategoryAsync(CreateCategoryDTO dto)
@@ -37,15 +40,15 @@ namespace Sportopoliten.BLL.Services
                 ImageUrl = dto.ImageUrl // Добавляем сохранение изображения
             };
 
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            await Database.Categories.AddAsync(category);
+            await Database.SaveChangesAsync();
 
             return category;
         }
 
         public async Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto)
         {
-            var category = await _context.Categories
+            var category = await Database.Categories
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
@@ -59,14 +62,15 @@ namespace Sportopoliten.BLL.Services
                 category.ImageUrl = dto.ImageUrl;
             }
 
-            await _context.SaveChangesAsync();
+            await Database.SaveChangesAsync();
         }
 
         public async Task DeleteCategoryAsync(int id)
         {
-            var category = await _context.Categories
+            var category = await Database.Categories.GetSingleWithQueryAsync(query => query
                 .Include(c => c.Products)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .Where(c => c.Id == id)
+            );
 
             if (category == null)
             {
@@ -78,8 +82,8 @@ namespace Sportopoliten.BLL.Services
                 throw new InvalidOperationException("Нельзя удалить категорию, в которой есть товары");
             }
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            Database.Categories.Delete(category);
+            await Database.SaveChangesAsync();
         }
     }
 }

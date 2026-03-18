@@ -3,52 +3,60 @@ using Sportopoliten.BLL.DTO;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
+using Sportopoliten.DAL.Interfaces;
 
 namespace Sportopoliten.BLL.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly ShopDbContext _context;
+        IUnitOfWork Database { get; set; }
 
-        public OrderService(ShopDbContext context)
+        public OrderService(IUnitOfWork uow)
         {
-            _context = context;
+            Database = uow;
         }
 
         // Получить все заказы
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
-            return await _context.Orders
+            return await Database.Orders.GetWithQueryAsync(query => query
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+                );
         }
 
         // Получить заказ по ID
         public async Task<Order?> GetOrderByIdAsync(int id)
         {
-            return await _context.Orders
+            return await Database.Orders.GetSingleWithQueryAsync(query => query
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                         .ThenInclude(p => p.ProductImages)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .Where(o => o.Id == id)
+            );
         }
 
         // Создать новый заказ
         public async Task<Order> CreateOrderAsync(CreateOrderDTO dto)
         {
             // Начинаем транзакцию
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction = await Database.BeginTransactionAsync();
 
             try
             {
                 // Проверяем существование пользователя
-                var user = await _context.Users.FindAsync(dto.UserId);
+                var user = await Database.Users.GetByIdAsync(dto.UserId);
                 if (user == null)
                     throw new KeyNotFoundException($"Пользователь с ID {dto.UserId} не найден");
+
+                //ОПТИМИЗАЦИЯ: Загружаем все нужные товары ОДНИМ запросом
+                var productIds = dto.Items.Select(i => i.ProductId).ToList();
+                var products = (await Database.Products.GetWithQueryAsync(q =>
+                    q.Where(p => productIds.Contains(p.Id))
+                )).ToList();
 
                 // Создаем заказ
                 var order = new Order
@@ -66,17 +74,21 @@ namespace Sportopoliten.BLL.Services
                 foreach (var itemDto in dto.Items)
                 {
                     // Проверяем существование товара
-                    var product = await _context.Products.FindAsync(itemDto.ProductId);
+                    var product = products.FirstOrDefault(p => p.Id == itemDto.ProductId);
                     if (product == null)
                         throw new KeyNotFoundException($"Товар с ID {itemDto.ProductId} не найден");
 
-                    // Проверяем наличие на складе
+                    //// Проверяем наличие на складе
+                    //if (product.StockQuantity < itemDto.Count)
+                    //    throw new InvalidOperationException($"Недостаточно товара '{product.Title}' (в наличии: {product.StockQuantity})");
+                    //// ОБНОВЛЯЕМ ОСТАТОК
+                    //product.StockQuantity -= itemDto.Count;
 
                     // Создаем позицию заказа
                     var orderItem = new OrderItem
                     {
                         ProductId = itemDto.ProductId,
-                        Product = product,
+                        //Product = product,
                         Count = itemDto.Count,
                         PriceAtPurchase = product.Price, // Цена на момент заказа
                         Subtotal = product.Price * itemDto.Count
@@ -85,14 +97,14 @@ namespace Sportopoliten.BLL.Services
                     order.OrderItems.Add(orderItem);
                     totalAmount += orderItem.Subtotal;
 
-                    _context.Products.Update(product);
+                    Database.Products.Update(product);
                 }
 
                 order.TotalAmount = totalAmount;
 
                 // Сохраняем заказ
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
+                await Database.Orders.AddAsync(order);
+                await Database.SaveChangesAsync();
 
                 // Подтверждаем транзакцию
                 await transaction.CommitAsync();
@@ -109,34 +121,34 @@ namespace Sportopoliten.BLL.Services
         // Получить заказы пользователя
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId)
         {
-            return await _context.Orders
+            return await Database.Orders.GetWithQueryAsync(query => query
                 .Where(o => o.UserId == userId)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+                );
         }
 
         // Получить заказы по статусу
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
-            return await _context.Orders
+            return await Database.Orders.GetWithQueryAsync(query => query
                 .Where(o => o.Status == status)
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
                 .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+                );
         }
 
         // Обновить статус заказа
         public async Task UpdateOrderStatusAsync(int id, OrderStatus status)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await Database.Orders.GetByIdAsync(id);
             if (order == null)
                 throw new KeyNotFoundException($"Заказ с ID {id} не найден");
 
             order.Status = status;
-            await _context.SaveChangesAsync();
+            await Database.SaveChangesAsync();
         }
     }
 }

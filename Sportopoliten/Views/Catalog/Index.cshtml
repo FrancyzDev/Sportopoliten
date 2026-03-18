@@ -65,7 +65,8 @@
                                         <input class="form-check-input" type="radio" name="categoryId" 
                                                id="catAll" value="" @(Model.SelectedCategoryId == null ? "checked" : "")>
                                         <label class="form-check-label" for="catAll">
-                                            Всі категорії
+                                            <span>Всі категорії</span>
+                                            <span class="badge bg-light text-dark">@Model.Categories.Sum(c => c.ProductCount)</span>
                                         </label>
                                     </div>
                                     @foreach (var category in Model.Categories)
@@ -146,8 +147,7 @@
                                 <div class="product-card card h-100 border-0 shadow-sm">
                                     <a asp-action="Product" asp-route-id="@product.Id" class="text-decoration-none">
                                         <div class="product-image position-relative">
-                                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.Title" 
-                                                 style="height: 200px; object-fit: cover;">
+                                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.Title" style="height: 200px; object-fit: cover;">
                                             @if (product.Price < 1000)
                                             {
                                                 <span class="badge bg-success position-absolute top-0 end-0 m-2">-20%</span>
@@ -266,6 +266,7 @@
 
 @section Styles {
     <style>
+        /* Product Cards */
         .product-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
@@ -298,40 +299,164 @@
             text-align: center;
         }
         
+        /* Filters Card */
         .filters-card {
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             position: sticky;
             top: 20px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+            transition: all 0.3s ease;
         }
-        
+
+        .filters-card:hover {
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .filters-card .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: white;
+            border-radius: 16px 16px 0 0 !important;
+            padding: 1.2rem 1.5rem;
+        }
+
+        .filters-card .card-header h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filters-card .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Filter Sections */
         .filter-section:not(:last-child) {
             border-bottom: 1px solid #eee;
             padding-bottom: 1rem;
         }
-        
-        .category-list {
-            max-height: 300px;
-            overflow-y: auto;
+
+        .filter-section h6 {
+            font-size: 0.95rem;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem !important;
+            position: relative;
+            padding-left: 12px;
         }
-        
-        .category-list::-webkit-scrollbar {
-            width: 5px;
+
+        .filter-section h6::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
         }
-        
-        .category-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
+
+        /* Category List - Улучшенные стили для радио-кнопок */
+        .category-list .form-check {
+            padding-left: 0;
+            margin-bottom: 0.5rem !important;
         }
-        
-        .category-list::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 5px;
+
+        .category-list .form-check-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
-        
-        .category-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
+
+        .category-list .form-check-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            font-weight: 500;
         }
-        
+
+        .category-list .form-check-label:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .category-list .form-check-input:checked + .form-check-label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .category-list .form-check-input:checked + .form-check-label .badge {
+            background-color: white !important;
+            color: #667eea !important;
+        }
+
+        .category-list .badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+
+        /* Специальный стиль для "Всі категорії" */
+        #catAll:checked + .form-check-label {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        /* Анимация появления категорий */
+        .category-list .form-check {
+            animation: slideIn 0.3s ease;
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Price Range */
+        .price-range .input-group {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .price-range .input-group-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .price-range .form-control {
+            border: 1px solid #e9ecef;
+            border-left: none;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+
+        .price-range .form-control:focus {
+            border-color: #667eea;
+            box-shadow: none;
+        }
+
+        /* Pagination */
         .page-link {
             color: #667eea;
             border: none;
@@ -344,6 +469,7 @@
             border-color: transparent;
         }
         
+        /* Breadcrumb */
         .breadcrumb {
             background: transparent;
         }
@@ -355,6 +481,56 @@
         
         .breadcrumb-item.active {
             color: #6c757d;
+        }
+
+        /* Scrollbar for category list */
+        .category-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .category-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .category-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .category-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        .category-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-secondary {
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-secondary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
     </style>
 }

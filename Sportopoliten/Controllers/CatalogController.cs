@@ -32,7 +32,7 @@ namespace Sportopoliten.Controllers
             decimal? maxPrice,
             string? sortBy,
             int page = 1,
-            int pageSize = 2)
+            int pageSize = 12)
         {
             var query = _context.Products
                 .Include(p => p.Category)

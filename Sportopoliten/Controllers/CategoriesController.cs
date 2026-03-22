@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Sportopoliten.BLL.DTO;
+﻿using Microsoft.AspNetCore.Mvc;
 using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.ViewModels.CategoryViewModels;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Sportopoliten.Controllers
 {

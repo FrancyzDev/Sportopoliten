@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sportopoliten.BLL.DTO;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
-using Sportopoliten.DAL.Entities;
 using Sportopoliten.ViewModels.CatalogViewModels;
 
 namespace Sportopoliten.Controllers

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Sportopoliten.BLL.DTO.Category
+﻿namespace Sportopoliten.BLL.DTO.Category
 {
     public class UpdateCategoryDTO
     {

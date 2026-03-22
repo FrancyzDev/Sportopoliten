@@ -7,7 +7,7 @@ namespace Sportopoliten.Extensions
     {
         public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            var provider = configuration["DatabaseProvider"];
+            var provider = configuration["CurrentDatabaseProvider"];
 
             switch (provider)
             {

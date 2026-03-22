@@ -1,6 +1,4 @@
-﻿using Sportopoliten.BLL.DTO.Category;
-using Sportopoliten.DAL.Entities;
-using Sportopoliten.BLL.DTO.Category;
+﻿using Sportopoliten.DAL.Entities;
 
 namespace Sportopoliten.ViewModels.HomeViewModels
 {

@@ -62,11 +62,11 @@ public class AccountController : Controller
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, userDto.Id.ToString()),
-            new Claim(ClaimTypes.Name, userDto.Login ?? userDto.Email),
-            new Claim(ClaimTypes.Email, userDto.Email ?? string.Empty),
-            new Claim("FullName", userDto.FullName ?? string.Empty),
-            new Claim("CartId", userDto.CartId.ToString()),
+            new (ClaimTypes.NameIdentifier, userDto.Id.ToString()),
+            new (ClaimTypes.Name, userDto.Login),
+            new (ClaimTypes.Email, userDto.Email),
+            new ("FullName", userDto.FullName),
+            new ("CartId", userDto.CartId.ToString()),
         };
 
         if (userDto.IsAdmin)

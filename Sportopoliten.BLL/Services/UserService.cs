@@ -155,6 +155,7 @@ namespace Sportopoliten.BLL.Services
         public async Task<UserDTO?> GetUserByEmailAsync(string email)
         {
             var user = await _context.Users
+                .Include(u => u.Cart)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             return user != null ? MapToDTO(user) : null;
@@ -163,6 +164,7 @@ namespace Sportopoliten.BLL.Services
         public async Task<UserDTO?> GetUserByLoginAsync(string login)
         {
             var user = await _context.Users
+                .Include(u => u.Cart)
                 .FirstOrDefaultAsync(u => u.Login == login);
 
             return user != null ? MapToDTO(user) : null;

@@ -1,4 +1,6 @@
-﻿using Sportopoliten.DAL.Entities;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using Sportopoliten.DAL.Entities;
+using Sportopoliten.DAL.Repositories;
 
 namespace Sportopoliten.DAL.Interfaces
 {
@@ -9,8 +11,11 @@ namespace Sportopoliten.DAL.Interfaces
         IRepository<CartItem> CartItems { get; }
         IRepository<Order> Orders { get; }
         IRepository<OrderItem> OrderItems { get; }
+        IRepository<Category> Categories { get; }
         IRepository<Product> Products { get; }
         IRepository<ProductImage> ProductImages { get; }
         Task<int> SaveChangesAsync();
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

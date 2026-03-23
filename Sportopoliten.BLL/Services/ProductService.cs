@@ -1,18 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.DTO.Product;
+using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
+using Sportopoliten.DAL.Interfaces;
 
 namespace Sportopoliten.BLL.Services
 {
     public class ProductService : IProductService
     {
-        private readonly ShopDbContext _context;
+        IUnitOfWork Database { get; set; }
 
-        public ProductService(ShopDbContext context)
+        public ProductService(IUnitOfWork uow)
         {
-            _context = context;
+            Database = uow;
         }
 
         public async Task<Product> CreateProductAsync(CreateProductDTO dto)
@@ -34,16 +35,17 @@ namespace Sportopoliten.BLL.Services
                 });
             }
 
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            await Database.Products.AddAsync(product);
+            await Database.SaveChangesAsync();
             return product;
         }
 
         public async Task UpdateProductAsync(int productId, UpdateProductDTO dto)
         {
-            var product = await _context.Products
+            var product = await Database.Products.GetSingleWithQueryAsync(query => query
                 .Include(p => p.ProductImages)
-                .FirstOrDefaultAsync(p => p.Id == productId);
+                .Where(p => p.Id == productId)
+            );
 
             if (product == null)
             {
@@ -59,7 +61,7 @@ namespace Sportopoliten.BLL.Services
             // Удаляем старые изображения
             if (product.ProductImages != null && product.ProductImages.Any())
             {
-                _context.ProductImages.RemoveRange(product.ProductImages);
+                Database.ProductImages.RemoveRange(product.ProductImages);
             }
 
             // Добавляем новые изображения
@@ -76,14 +78,15 @@ namespace Sportopoliten.BLL.Services
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await Database.SaveChangesAsync();
         }
 
         public async Task DeleteProductAsync(int productId)
         {
-            var product = await _context.Products
+            var product = await Database.Products.GetSingleWithQueryAsync(query => query
                 .Include(p => p.ProductImages)
-                .FirstOrDefaultAsync(p => p.Id == productId);
+                .Where(p => p.Id == productId)
+                );
 
             if (product == null)
                 throw new KeyNotFoundException("Товар не найден");
@@ -91,52 +94,54 @@ namespace Sportopoliten.BLL.Services
             // Удаляем связанные изображения
             if (product.ProductImages != null && product.ProductImages.Any())
             {
-                _context.ProductImages.RemoveRange(product.ProductImages);
+                Database.ProductImages.RemoveRange(product.ProductImages);
             }
 
             // Удаляем товар
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            Database.Products.Delete(product);
+            await Database.SaveChangesAsync();
         }
 
         // Дополнительные методы
         public async Task<Product?> GetProductByIdAsync(int id)
         {
-            return await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            return await Database.Products.GetSingleWithQueryAsync(query => query
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .Where(p => p.Id == id)
+    );
         }
 
         public async Task<IEnumerable<Product>> GetAllProductsAsync()
         {
-            return await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .ToListAsync();
+            return await Database.Products.GetWithQueryAsync(query => query
+               .Include(p => p.Category)
+               .Include(p => p.ProductImages)
+           );
         }
 
         public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
         {
-            return await _context.Products
-                .Where(p => p.CategoryId == categoryId)
-                .Include(p => p.ProductImages)
-                .ToListAsync();
+            return await Database.Products.GetWithQueryAsync(query => query
+            .Where(p => p.CategoryId == categoryId)
+            .Include(p => p.ProductImages)
+    );
         }
 
         public async Task<IEnumerable<Product>> GetPagedProductsAsync(int page, int pageSize)
         {
-            return await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            return await Database.Products.GetWithQueryAsync(query => query
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .OrderBy(p => p.Id) 
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+    );
         }
 
         public async Task<int> GetTotalProductsCountAsync()
         {
-            return await _context.Products.CountAsync();
+            return await Database.Products.CountAsync();
         }
     }
 }

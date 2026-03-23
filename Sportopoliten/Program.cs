@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Scalar.AspNetCore;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
+using Sportopoliten.DAL.Interfaces;
+using Sportopoliten.DAL.Repositories;
 using Sportopoliten.Extensions;
 
 namespace Sportopoliten
@@ -13,7 +15,11 @@ namespace Sportopoliten
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IOrderService, OrderService>(); 
+            builder.Services.AddScoped<ICartService, CartService>();  
             builder.Services.AddScoped<IUserService, UserService>();
+
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddDatabase(builder.Configuration);
             
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

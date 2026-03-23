@@ -3,6 +3,7 @@ using Sportopoliten.BLL.DTO.User;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
+using Sportopoliten.DAL.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,11 +11,11 @@ namespace Sportopoliten.BLL.Services
 {
     public class UserService : IUserService
     {
-        private readonly ShopDbContext _context;
+        IUnitOfWork Database { get; set; }
 
-        public UserService(ShopDbContext context)
+        public UserService(IUnitOfWork uow)
         {
-            _context = context;
+            Database = uow;
         }
 
         public async Task<RegisterUserDTO> Register(RegisterUserDTO registerDto)
@@ -41,8 +42,8 @@ namespace Sportopoliten.BLL.Services
                 Cart = new Cart() // Создаем корзину для нового пользователя
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await Database.Users.AddAsync(user);
+            await Database.SaveChangesAsync();
 
             return new RegisterUserDTO
             {
@@ -55,7 +56,7 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<LoginUserDTO?> Login(LoginUserDTO loginDto)
         {
-            var user = await _context.Users
+            var user = await Database.Users
                 .FirstOrDefaultAsync(u =>
                     u.Login == loginDto.LoginOrEmail ||
                     u.Email == loginDto.LoginOrEmail);
@@ -80,9 +81,10 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<UserDTO?> GetUserByIdAsync(int id)
         {
-            var user = await _context.Users
+            var user = await Database.Users.GetSingleWithQueryAsync(query => query
                 .Include(u => u.Cart)
-                .FirstOrDefaultAsync(u => u.Id == id);
+                .Where(u => u.Id == id)
+                );
 
             if (user == null)
                 return null;
@@ -92,21 +94,23 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
-            var users = await _context.Users
+            var users = await Database.Users.GetWithQueryAsync(query => query
                 .Include(u => u.Cart)
-                .ToListAsync();
+            );
 
             return users.Select(MapToDTO);
         }
 
         public async Task<bool> IsEmailUniqueAsync(string email)
         {
-            return !await _context.Users.AnyAsync(u => u.Email == email);
+            var users = await Database.Users.FindAsync(u => u.Email == email);
+            return !users.Any();
         }
 
         public async Task<bool> IsLoginUniqueAsync(string login)
         {
-            return !await _context.Users.AnyAsync(u => u.Login == login);
+            var users = await Database.Users.FindAsync(u => u.Login == login);
+            return !users.Any();
         }
 
         public async Task<UserDTO?> GetUserProfileAsync(int id)
@@ -116,7 +120,7 @@ namespace Sportopoliten.BLL.Services
 
         public async Task ChangePasswordAsync(int userId, string oldPassword, string newPassword)
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await Database.Users.GetByIdAsync(userId);
 
             if (user == null)
                 throw new KeyNotFoundException("Пользователь не найден");
@@ -129,33 +133,32 @@ namespace Sportopoliten.BLL.Services
             user.Salt = GenerateSalt();
             user.PasswordHash = HashPassword(newPassword, user.Salt);
 
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            Database.Users.Update(user);
+            await Database.SaveChangesAsync();
         }
 
         public async Task DeleteUserAsync(int id)
         {
-            var user = await _context.Users
+            var user = await Database.Users.GetSingleWithQueryAsync(query => query
                 .Include(u => u.Cart)
-                .FirstOrDefaultAsync(u => u.Id == id);
+                .Where(u => u.Id == id)
+            );
 
             if (user == null)
                 throw new KeyNotFoundException("Пользователь не найден");
 
-            // Удаляем корзину пользователя
             if (user.Cart != null)
             {
-                _context.Carts.Remove(user.Cart);
+                Database.Carts.Delete(user.Cart);
             }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            Database.Users.Delete(user);
+            await Database.SaveChangesAsync();
         }
 
         public async Task<UserDTO?> GetUserByEmailAsync(string email)
         {
-            var user = await _context.Users
-                .Include(u => u.Cart)
+            var user = await Database.Users
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             return user != null ? MapToDTO(user) : null;
@@ -163,8 +166,7 @@ namespace Sportopoliten.BLL.Services
 
         public async Task<UserDTO?> GetUserByLoginAsync(string login)
         {
-            var user = await _context.Users
-                .Include(u => u.Cart)
+            var user = await Database.Users
                 .FirstOrDefaultAsync(u => u.Login == login);
 
             return user != null ? MapToDTO(user) : null;

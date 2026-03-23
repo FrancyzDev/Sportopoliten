@@ -1,6 +1,7 @@
 ﻿using Sportopoliten.DAL.Entities;
 using Sportopoliten.DAL.Interfaces;
 using Sportopoliten.DAL.Data;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Sportopoliten.DAL.Repositories
 {
@@ -13,6 +14,7 @@ namespace Sportopoliten.DAL.Repositories
         public IRepository<CartItem> CartItems { get; private set; }
         public IRepository<Order> Orders { get; private set; }
         public IRepository<OrderItem> OrderItems { get; private set; }
+        public IRepository<Category> Categories { get; private set; }
         public IRepository<Product> Products { get; private set; }
         public IRepository<ProductImage> ProductImages { get; private set; }
 
@@ -23,9 +25,15 @@ namespace Sportopoliten.DAL.Repositories
             Carts = new Repository<Cart>(context);
             CartItems = new Repository<CartItem>(context);
             Orders = new Repository<Order>(context);
+            Categories = new Repository<Category>(context);
             OrderItems = new Repository<OrderItem>(context);
             Products = new Repository<Product>(context);
             ProductImages = new Repository<ProductImage>(context);
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
         public async Task<int> SaveChangesAsync()

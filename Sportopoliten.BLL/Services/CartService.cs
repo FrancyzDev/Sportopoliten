@@ -1,25 +1,15 @@
-﻿using Sportopoliten.BLL.DTO;
-using Sportopoliten.BLL.DTO.Cart;
+﻿using Sportopoliten.BLL.DTO.Cart;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Entities;
 using Sportopoliten.DAL.Interfaces;
-using Sportopoliten.DAL.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Sportopoliten.BLL.Services
 {
     public class CartService : ICartService
     {
-        IUnitOfWork Database { get; set; }
+        private IUnitOfWork Database { get; }
 
-        public CartService(IUnitOfWork uow)
-        {
-            Database = uow;
-        }
+        public CartService(IUnitOfWork uow) => Database = uow;
 
         public async Task<CartDTO> GetCartAsync(int userId)
         {

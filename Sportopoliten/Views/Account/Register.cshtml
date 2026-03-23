@@ -1,0 +1,85 @@
+﻿@model Sportopoliten.ViewModels.AccountViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Реєстрація";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 fw-bold mb-1">Регистрация</h1>
+                <p class="text-muted small mb-4">Создайте аккаунт для отслеживания заказов</p>
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                <form asp-action="Register" method="post">
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Иван Иванов" autocomplete="name" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="Login" class="form-label"></label>
+                            <input asp-for="Login" class="form-control" placeholder="ivan123" autocomplete="username" />
+                            <span asp-validation-for="Login" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label asp-for="Phone" class="form-label">
+                                Телефон <span class="text-muted fw-normal">(необязательно)</span>
+                            </label>
+                            <input asp-for="Phone" class="form-control" placeholder="+380501234567" autocomplete="tel" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="your@email.com" autocomplete="email" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="new-password" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark">
+                            <i class="fa-solid fa-user-plus me-2"></i>Создать аккаунт
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-3" />
+
+                <p class="text-center small text-muted mb-3">
+                    Уже есть аккаунт?
+                    <a asp-action="Login" class="text-dark fw-semibold">Войти</a>
+                </p>
+
+                <div class="alert alert-light border small text-muted mb-0">
+                    <i class="fa-solid fa-cart-shopping me-1"></i>
+                    Регистрация не обязательна —
+                    <a asp-controller="Catalog" asp-action="Index" class="text-dark fw-semibold">перейти к покупкам как гость</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,11 +1,10 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Scalar.AspNetCore;
-using Sportopoliten.BLL.DTO;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
 using Sportopoliten.DAL.Interfaces;
 using Sportopoliten.DAL.Repositories;
 using Sportopoliten.Extensions;
-using System.Runtime.InteropServices;
 
 namespace Sportopoliten
 {
@@ -21,8 +20,17 @@ namespace Sportopoliten
             builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             builder.Services.AddDatabase(builder.Configuration);
+            
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.LogoutPath = "/Account/Logout";
+                    options.AccessDeniedPath = "/Account/AccessDenied";
+                    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                    options.SlidingExpiration = true;
+                });
 
             builder.Services.AddControllersWithViews();
 
@@ -59,6 +67,7 @@ namespace Sportopoliten
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();

@@ -1,6 +1,5 @@
 ﻿using Sportopoliten.BLL.DTO;
 using Sportopoliten.DAL.Entities;
-using Sportopoliten.BLL.DTO.Order;
 
 namespace Sportopoliten.BLL.Interfaces
 {

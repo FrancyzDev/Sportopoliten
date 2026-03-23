@@ -1,5 +1,4 @@
-﻿using Sportopoliten.BLL.DTO;
-using Sportopoliten.BLL.DTO.Cart;
+﻿using Sportopoliten.BLL.DTO.Cart;
 
 namespace Sportopoliten.BLL.Interfaces
 {

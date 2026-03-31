@@ -1,0 +1,347 @@
+﻿@model Sportopoliten.ViewModels.ProductViewModels.DetailProductViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_Layout";
+}
+
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Головна</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Catalog" asp-action="Index">Каталог</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@Model.CategoryId">@Model.CategoryName</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </div>
+</nav>
+
+<!-- Детали товара -->
+<section class="product-details py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Галерея изображений -->
+            <div class="col-md-6 mb-4">
+                <div class="product-gallery">
+                    <div class="main-image mb-3">
+                        <img id="mainImage" src="@(Model.Images.Any() ? Model.Images[0] : "/images/no-image.jpg")"
+                             class="img-fluid rounded" alt="@Model.Title" style="width: 100%; height: 500px; object-fit: cover;">
+                    </div>
+                    @if (Model.Images.Count > 1)
+                    {
+                        <div class="thumbnail-images d-flex gap-2">
+                            @foreach (var image in Model.Images)
+                            {
+                                <img src="@image"
+                                     class="thumbnail img-thumbnail"
+                                     alt="Thumbnail"
+                                     style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                                     onclick="changeMainImage(this.src)">
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Информация о товаре -->
+            <div class="col-md-6">
+                <h1 class="display-5 fw-bold mb-3">@Model.Title</h1>
+                
+                <div class="mb-3">
+                    <a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="text-decoration-none">
+                        <i class="fas fa-tag me-1"></i>@Model.CategoryName
+                    </a>
+                </div>
+
+                <div class="price mb-4">
+                    <span class="display-6 fw-bold text-primary">@Model.Price.ToString("C", new CultureInfo("uk-UA"))</span>
+                </div>
+
+                <div class="description mb-4">
+                    <h5>Опис товару:</h5>
+                    <p class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Опис відсутній" : Model.Description)</p>
+                </div>
+
+                <!-- Выбор размера -->
+                <div class="size-selector mb-4">
+                    <label class="form-label fw-bold">Розмір:</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        @foreach (var size in Model.AvailableSizes)
+                        {
+                            <button type="button" class="btn btn-outline-primary size-btn" data-size="@size">
+                                @size
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Количество -->
+                <div class="quantity-selector mb-4">
+                    <label class="form-label fw-bold">Кількість:</label>
+                    <div class="input-group" style="width: 150px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity()">-</button>
+                        <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="99">
+                        <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity()">+</button>
+                    </div>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="actions">
+                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart()">
+                        <i class="fas fa-shopping-cart me-2"></i>Додати до кошика
+                    </button>
+                    <button class="btn btn-outline-secondary w-100" onclick="addToWishlist()">
+                        <i class="fas fa-heart me-2"></i>Додати до бажань
+                    </button>
+                </div>
+
+                <!-- Дополнительная информация -->
+                <div class="additional-info mt-4 pt-3 border-top">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-truck me-1"></i> Безкоштовна доставка від 1000₴
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-undo me-1"></i> Повернення 14 днів
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let selectedSize = null;
+        
+        // Выбор размера
+        document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+        document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedSize = this.dataset.size;
+        });
+        });
+        
+        // Добавление в корзину
+        async function addToCart() {
+        if (!selectedSize) {
+        Swal.fire({
+        icon: 'warning',
+        title: 'Виберіть розмір',
+        text: 'Будь ласка, оберіть розмір товару',
+        confirmButtonText: 'Добре'
+        });
+        return;
+        }
+            
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const productId = @Model.Id;
+            
+        const button = event?.currentTarget;
+        if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Додається...';
+        button.disabled = true;
+        }
+            
+        try {
+        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        body: JSON.stringify({
+        productId: productId,
+        count: quantity,
+        size: selectedSize
+        })
+        });
+                
+        const result = await response.json();
+                
+        if (result.success) {
+        Swal.fire({
+        icon: 'success',
+        title: 'Додано!',
+        text: `${@Model.Title} (${selectedSize}) - ${quantity} шт.`,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+        });
+                    
+        updateCartCounter();
+                    
+        if (button) {
+        button.innerHTML = '<i class="fas fa-check me-2"></i>Додано!';
+        setTimeout(() => {
+        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.disabled = false;
+        }, 1500);
+        }
+        } else {
+        Swal.fire('Помилка', result.message, 'error');
+        if (button) {
+        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.disabled = false;
+        }
+        }
+        } catch (error) {
+        Swal.fire('Помилка', 'Не вдалося додати товар до кошика', 'error');
+        if (button) {
+        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.disabled = false;
+        }
+        }
+        }
+        
+        // Простое добавление для похожих товаров
+        async function addToCartSimple(productId) {
+        try {
+        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        body: JSON.stringify({ productId: productId, count: 1 })
+        });
+                
+        const result = await response.json();
+                
+        if (result.success) {
+        Swal.fire({
+        icon: 'success',
+        title: 'Додано!',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1500
+        });
+        updateCartCounter();
+        }
+        } catch (error) {
+        console.error('Error:', error);
+        }
+        }
+        
+        // Функции для количества
+        function decrementQuantity() {
+        let qty = parseInt(document.getElementById('quantity').value);
+        if (qty > 1) {
+        document.getElementById('quantity').value = qty - 1;
+        }
+        }
+        
+        function incrementQuantity() {
+        let qty = parseInt(document.getElementById('quantity').value);
+        if (qty < 99) {
+        document.getElementById('quantity').value = qty + 1;
+        }
+        }
+        
+        // Смена главного изображения
+        function changeMainImage(src) {
+        document.getElementById('mainImage').src = src;
+        }
+        
+        // Обновление счетчика корзины
+        async function updateCartCounter() {
+        try {
+        const response = await fetch('@Url.Action("GetCartCount", "Cart")');
+        const result = await response.json();
+        const cartBadge = document.querySelector('.cart-badge');
+        if (cartBadge) {
+        if (result.count > 0) {
+        cartBadge.textContent = result.count;
+        cartBadge.style.display = 'inline-block';
+        } else {
+        cartBadge.style.display = 'none';
+        }
+        }
+        } catch (error) {
+        console.error('Error:', error);
+        }
+        }
+        
+        function addToWishlist() {
+        Swal.fire({
+        icon: 'info',
+        title: 'Скоро буде доступно',
+        text: 'Функція списку бажань з\'явиться найближчим часом',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+        });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        border-radius: 12px;
+        overflow: hidden;
+        }
+        
+        .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+        }
+        
+        .product-image {
+        overflow: hidden;
+        }
+        
+        .product-image img {
+        transition: transform 0.5s ease;
+        }
+        
+        .product-card:hover .product-image img {
+        transform: scale(1.05);
+        }
+        
+        .size-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        }
+        
+        .size-btn:hover {
+        transform: translateY(-2px);
+        }
+        
+        .thumbnail {
+        transition: transform 0.2s ease;
+        }
+        
+        .thumbnail:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+        }
+        
+        .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+}

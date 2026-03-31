@@ -85,5 +85,19 @@ namespace Sportopoliten.BLL.Services
             Database.Categories.Delete(category);
             await Database.SaveChangesAsync();
         }
+        public async Task<IEnumerable<CategoryWithCountDTO>> GetCategoriesWithProductCountAsync()
+        {
+            var categories = await Database.Categories.GetWithQueryAsync(query => query
+                .Include(c => c.Products)
+            );
+
+            return categories.Select(c => new CategoryWithCountDTO
+            {
+                Id = c.Id,
+                Title = c.Title,
+                ImageUrl = c.ImageUrl,
+                ProductCount = c.Products?.Count ?? 0
+            });
+        }
     }
 }

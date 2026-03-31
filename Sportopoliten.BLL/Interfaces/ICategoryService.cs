@@ -10,5 +10,6 @@ namespace Sportopoliten.BLL.Interfaces
         Task<Category> CreateCategoryAsync(CreateCategoryDTO dto);
         Task UpdateCategoryAsync(int id, UpdateCategoryDTO dto);
         Task DeleteCategoryAsync(int id);
+        Task<IEnumerable<CategoryWithCountDTO>> GetCategoriesWithProductCountAsync();
     }
 }

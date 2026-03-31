@@ -11,6 +11,6 @@ namespace Sportopoliten.ViewModels.ProductViewModels
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public List<string> Images { get; set; } = new();
-        public List<CatalogItemViewModel> RelatedProducts { get; set; } = new();
+        public List<string> AvailableSizes { get; set; } = new() { "XS", "S", "M", "L", "XL", "XXL" };
     }
 }

@@ -148,10 +148,6 @@
                                     <a asp-action="Product" asp-route-id="@product.Id" class="text-decoration-none">
                                         <div class="product-image position-relative">
                                             <img src="@product.ImageUrl" class="card-img-top" alt="@product.Title" style="height: 200px; object-fit: cover;">
-                                            @if (product.Price < 1000)
-                                            {
-                                                <span class="badge bg-success position-absolute top-0 end-0 m-2">-20%</span>
-                                            }
                                         </div>
                                         <div class="card-body">
                                             <p class="text-muted small mb-1">@product.CategoryName</p>

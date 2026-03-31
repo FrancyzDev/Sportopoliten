@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.DAL.Data;
 using Sportopoliten.ViewModels.CatalogViewModels;
+using Sportopoliten.ViewModels.ProductViewModels;
 
 namespace Sportopoliten.Controllers
 {
@@ -10,16 +9,13 @@ namespace Sportopoliten.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
-        private readonly ShopDbContext _context;
 
         public CatalogController(
             IProductService productService,
-            ICategoryService categoryService,
-            ShopDbContext context)
+            ICategoryService categoryService)
         {
             _productService = productService;
             _categoryService = categoryService;
-            _context = context;
         }
 
         // GET: Catalog
@@ -32,86 +28,36 @@ namespace Sportopoliten.Controllers
             int page = 1,
             int pageSize = 12)
         {
-            var query = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .AsQueryable();
+            // Используем новый метод сервиса
+            var (products, totalItems) = await _productService.GetFilteredProductsAsync(
+                searchTerm, categoryId, minPrice, maxPrice, sortBy, page, pageSize);
 
-            // Фильтрация по поисковому запросу
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            var items = products.Select(p => new CatalogItemViewModel
             {
-                query = query.Where(p =>
-                    p.Title.Contains(searchTerm) ||
-                    (p.Description != null && p.Description.Contains(searchTerm)));
-            }
+                Id = p.Id,
+                Title = p.Title ?? "Без названия",
+                Description = p.Description,
+                Price = p.Price,
+                ImageUrl = p.ProductImages != null && p.ProductImages.Any()
+                    ? p.ProductImages.First().ImageUrl
+                    : "/images/no-image.jpg",
+                CategoryName = p.Category != null ? p.Category.Title : "Без категории"
+            }).ToList();
 
-            // Фильтрация по категории
-            if (categoryId.HasValue && categoryId.Value > 0)
+            // Используем новый метод категорий
+            var categoriesWithCount = await _categoryService.GetCategoriesWithProductCountAsync();
+
+            var categories = categoriesWithCount.Select(c => new CategoryFilterViewModel
             {
-                query = query.Where(p => p.CategoryId == categoryId);
-            }
+                Id = c.Id,
+                Title = c.Title,
+                ProductCount = c.ProductCount
+            }).ToList();
 
-            // Фильтрация по цене
-            if (minPrice.HasValue)
-            {
-                query = query.Where(p => p.Price >= minPrice.Value);
-            }
+            var minPriceValue = await _productService.GetMinPriceAsync();
+            var maxPriceValue = await _productService.GetMaxPriceAsync();
 
-            if (maxPrice.HasValue)
-            {
-                query = query.Where(p => p.Price <= maxPrice.Value);
-            }
-
-            // Сортировка
-            query = sortBy switch
-            {
-                "price_asc" => query.OrderBy(p => p.Price),
-                "price_desc" => query.OrderByDescending(p => p.Price),
-                "name_asc" => query.OrderBy(p => p.Title),
-                "name_desc" => query.OrderByDescending(p => p.Title),
-                "newest" => query.OrderByDescending(p => p.Id),
-                _ => query.OrderByDescending(p => p.Id)
-            };
-
-            // Пагинация
-            var totalItems = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new CatalogItemViewModel
-                {
-                    Id = p.Id,
-                    Title = p.Title ?? "Без названия",
-                    Description = p.Description,
-                    Price = p.Price,
-                    ImageUrl = p.ProductImages != null && p.ProductImages.Any()
-                        ? p.ProductImages.First().ImageUrl
-                        : "/images/no-image.jpg",
-                    CategoryName = p.Category != null ? p.Category.Title : "Без категории"
-                })
-                .ToListAsync();
-
-            // Получаем все категории для фильтра
-            var categories = await _context.Categories
-                .Select(c => new CategoryFilterViewModel
-                {
-                    Id = c.Id,
-                    Title = c.Title,
-                    ProductCount = _context.Products.Count(p => p.CategoryId == c.Id)
-                })
-                .ToListAsync();
-
-            // Получаем диапазон цен для фильтра
-            var priceRange = await _context.Products
-                .GroupBy(p => 1)
-                .Select(g => new
-                {
-                    MinPrice = g.Min(p => p.Price),
-                    MaxPrice = g.Max(p => p.Price)
-                })
-                .FirstOrDefaultAsync();
 
             var viewModel = new CatalogViewModel
             {
@@ -126,8 +72,46 @@ namespace Sportopoliten.Controllers
                 MaxPrice = maxPrice,
                 SortBy = sortBy,
                 Categories = categories,
-                PriceRangeMin = priceRange?.MinPrice ?? 0,
-                PriceRangeMax = priceRange?.MaxPrice ?? 10000
+                PriceRangeMin = minPriceValue,
+                PriceRangeMax = maxPriceValue
+            };
+
+            return View(viewModel);
+        }
+
+        // GET: Catalog/Product/5
+        public async Task<IActionResult> Product(int id)
+        {
+            var product = await _productService.GetProductByIdAsync(id);
+
+            if (product == null)
+                return NotFound();
+
+            var relatedProducts = await _productService.GetProductsByCategoryAsync(product.CategoryId ?? 0);
+
+            var relatedProductsViewModels = relatedProducts
+                .Where(p => p.Id != id)
+                .Take(4)
+                .Select(p => new CatalogItemViewModel
+                {
+                    Id = p.Id,
+                    Title = p.Title ?? "Без названия",
+                    Price = p.Price,
+                    ImageUrl = p.ProductImages != null && p.ProductImages.Any()
+                        ? p.ProductImages.First().ImageUrl
+                        : "/images/no-image.jpg"
+                })
+                .ToList();
+
+            var viewModel = new DetailProductViewModel
+            {
+                Id = product.Id,
+                Title = product.Title ?? "Без названия",
+                Description = product.Description,
+                Price = product.Price,
+                CategoryId = product.CategoryId ?? 0,
+                CategoryName = product.Category?.Title ?? "Без категории",
+                Images = product.ProductImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>()
             };
 
             return View(viewModel);
@@ -136,8 +120,7 @@ namespace Sportopoliten.Controllers
         // GET: Catalog/Category/5
         public async Task<IActionResult> Category(int id, int page = 1)
         {
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var category = await _categoryService.GetCategoryByIdAsync(id);
 
             if (category == null)
                 return NotFound();
@@ -149,48 +132,6 @@ namespace Sportopoliten.Controllers
         public IActionResult Search(string term)
         {
             return RedirectToAction(nameof(Index), new { searchTerm = term });
-        }
-
-        // GET: Catalog/Product/5
-        public async Task<IActionResult> Product(int id)
-        {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
-                return NotFound();
-
-            // Похожие товары из той же категории
-            var relatedProducts = await _context.Products
-                .Where(p => p.CategoryId == product.CategoryId && p.Id != id)
-                .Include(p => p.ProductImages)
-                .Take(4)
-                .Select(p => new CatalogItemViewModel
-                {
-                    Id = p.Id,
-                    Title = p.Title ?? "Без названия",
-                    Price = p.Price,
-                    ImageUrl = p.ProductImages != null && p.ProductImages.Any()
-                        ? p.ProductImages.First().ImageUrl
-                        : "/images/no-image.jpg"
-                })
-                .ToListAsync();
-
-            var viewModel = new ProductDetailViewModel
-            {
-                Id = product.Id,
-                Title = product.Title ?? "Без названия",
-                Description = product.Description,
-                Price = product.Price,
-                CategoryId = product.CategoryId ?? 0,
-                CategoryName = product.Category?.Title ?? "Без категории",
-                Images = product.ProductImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>(),
-                RelatedProducts = relatedProducts
-            };
-
-            return View(viewModel);
         }
     }
 }

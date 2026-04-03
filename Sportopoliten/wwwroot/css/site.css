@@ -29,3 +29,29 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+
+/*----------------------| CART CSS |------------------------------*/
+
+
+
+.main_cart_container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.empty_cart_message {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.back_to_store_btn {
+    color: white;
+    background-color: black;
+    font-weight: bold;
+    padding: 15px;
+    text-decoration: none;
+}
+
+/*----------------------| CART CSS |------------------------------*/

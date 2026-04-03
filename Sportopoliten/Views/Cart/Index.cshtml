@@ -1,0 +1,37 @@
+﻿@model Sportopoliten.BLL.DTO.Cart.CartDTO
+
+@{
+    ViewData["Title"] = "Корзина";
+    Layout = "_Layout";
+}
+
+<div class="main_cart_container">
+    <div class="cart_content">
+
+        @if (Model.Items != null && Model.Items.Any())
+        {
+            <h1>Кошик</h1>
+            <div class="cart_total_info">
+                Усього: (@Model.TotalQuantity) @Model.TotalPrice
+            </div>
+            @foreach (var s in Model.Items)
+            {
+                <div class="message">
+                    <p>@s.ProductName</p>
+                    <p>Количество: @s.Count</p>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty_cart_message_container">
+                <h1 class="empty_cart_message">Кошик порожній.</h1>
+                <br/>
+                <a asp-controller="Catalog" asp-action="Index" class="back_to_store_btn">
+                    За покупками ->
+                </a>
+            </div>
+        }
+    </div>
+    <div class="cart_total_info"></div>
+</div>

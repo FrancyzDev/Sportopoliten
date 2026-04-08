@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sportopoliten.ViewModels.CategoryViewModels
+namespace Sportopoliten.Areas.Admin.ViewModels.Categories
 {
     public class EditCategoryViewModel
     {

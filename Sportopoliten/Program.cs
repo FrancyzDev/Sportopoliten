@@ -15,13 +15,13 @@ namespace Sportopoliten
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IProductService, ProductService>();
-            builder.Services.AddScoped<IOrderService, OrderService>(); 
-            builder.Services.AddScoped<ICartService, CartService>();  
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<ICartService, CartService>();
             builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddDatabase(builder.Configuration);
-            
+
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -33,6 +33,8 @@ namespace Sportopoliten
                 });
 
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddAuthorization();
 
             builder.Services.AddOpenApi("v1", options =>
             {
@@ -60,22 +62,31 @@ namespace Sportopoliten
                         .WithTheme(ScalarTheme.Alternate)
                         .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
                 });
+                // Уберите эти строки или перенесите в нужное место
+                // app.UseExceptionHandler("/Home/Error");
+                // app.UseHsts();
+            }
+            else
+            {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();  // Добавьте эту строку для статических файлов
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapStaticAssets();
+            app.MapControllerRoute(
+                name: "areas",
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
             app.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Catalog}/{action=Index}/{id?}")
-                .WithStaticAssets();
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
             app.Run();
         }

@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Sportopoliten.Areas.Admin.ViewModels.Products;
 using Sportopoliten.BLL.DTO.Product;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.ViewModels.ProductViewModels;
 
-namespace Sportopoliten.Controllers
+namespace Sportopoliten.Areas.Admin.Controllers
 {
+    [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;

@@ -1,4 +1,6 @@
 ﻿using Sportopoliten.BLL.DTO.User;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Sportopoliten.BLL.Interfaces
 {
@@ -9,6 +11,7 @@ namespace Sportopoliten.BLL.Interfaces
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByEmailAsync(string email);
         Task<UserDTO?> GetUserByLoginAsync(string login);
+        Task DeleteUserAsync(int id);
         Task<IEnumerable<UserDTO>> GetAllUsersAsync();
         Task<bool> IsEmailUniqueAsync(string email);
         Task<bool> IsLoginUniqueAsync(string login);

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Sportopoliten.Areas.Admin.ViewModels.Categories;
 using Sportopoliten.BLL.DTO.Category;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.ViewModels.CategoryViewModels;
 
-namespace Sportopoliten.Controllers
+namespace Sportopoliten.Areas.Admin.Controllers
 {
+    [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;

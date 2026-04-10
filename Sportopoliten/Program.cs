@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Localization;
 using Scalar.AspNetCore;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
 using Sportopoliten.DAL.Interfaces;
 using Sportopoliten.DAL.Repositories;
 using Sportopoliten.Extensions;
+using System.Globalization;
 
 namespace Sportopoliten
 {
@@ -21,6 +23,19 @@ namespace Sportopoliten
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddDatabase(builder.Configuration);
+
+            var cultureInfo = new CultureInfo("en-US");
+            cultureInfo.NumberFormat.NumberDecimalSeparator = ".";
+            cultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
+            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+            builder.Services.Configure<RequestLocalizationOptions>(options =>
+            {
+                options.DefaultRequestCulture = new RequestCulture(cultureInfo);
+                options.SupportedCultures = new[] { cultureInfo };
+                options.SupportedUICultures = new[] { cultureInfo };
+            });
+
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>

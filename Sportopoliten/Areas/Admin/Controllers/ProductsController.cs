@@ -13,30 +13,20 @@ namespace Sportopoliten.Areas.Admin.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
-        private readonly IWebHostEnvironment _env;
 
         public ProductsController(
             IProductService productService,
-            ICategoryService categoryService,
-            IWebHostEnvironment env)
+            ICategoryService categoryService)
         {
             _productService = productService;
             _categoryService = categoryService;
-            _env = env;
         }
 
-        // GET: AdminProduct/Create
-        [HttpGet]
-        public async Task<IActionResult> Create()
+        // GET: AdminProduct/Index
+        public async Task<IActionResult> Index()
         {
-            var model = new CreateProductViewModel();
-
-            // Получаем категории и преобразуем в SelectList
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            Console.WriteLine(categories);
-            ViewBag.Categories = new SelectList(categories, "Id", "Title");
-
-            return View(model);
+            var products = await _productService.GetAllProductsAsync();
+            return View(products);
         }
 
         // GET: AdminProduct/Details/5
@@ -52,6 +42,19 @@ namespace Sportopoliten.Areas.Admin.Controllers
             return View(product);
         }
 
+        // GET: AdminProduct/Create
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var model = new CreateProductViewModel();
+
+            // Получаем категории и преобразуем в SelectList
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            ViewBag.Categories = new SelectList(categories, "Id", "Title");
+
+            return View(model);
+        }
+
         // POST: AdminProduct/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -59,55 +62,16 @@ namespace Sportopoliten.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                ViewBag.Categories = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Title");
                 return View(model);
             }
 
             try
             {
-                // Создаем директорию для изображений, если её нет
-                string uploadPath = Path.Combine(_env.WebRootPath, "images", "products");
-                if (!Directory.Exists(uploadPath))
-                {
-                    Directory.CreateDirectory(uploadPath);
-                }
-
-                // Обрабатываем изображения
-                var imageUrls = new List<string>();
-
-                if (model.Images != null && model.Images.Any())
-                {
-                    foreach (var image in model.Images)
-                    {
-                        if (image != null && image.Length > 0)
-                        {
-                            // Проверяем расширение файла
-                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                            var fileExtension = Path.GetExtension(image.FileName).ToLowerInvariant();
-
-                            if (!allowedExtensions.Contains(fileExtension))
-                            {
-                                ModelState.AddModelError("", $"Файл {image.FileName} имеет неподдерживаемый формат. Разрешены: {string.Join(", ", allowedExtensions)}");
-                                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
-                                return View(model);
-                            }
-
-                            // Генерируем уникальное имя файла
-                            var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                            var relativePath = Path.Combine("images", "products", fileName);
-                            var filePath = Path.Combine(_env.WebRootPath, relativePath);
-
-                            // Сохраняем файл
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await image.CopyToAsync(stream);
-                            }
-
-                            // Добавляем относительный путь к изображению
-                            imageUrls.Add("/" + relativePath.Replace("\\", "/"));
-                        }
-                    }
-                }
+                // Получаем URL изображений из модели
+                var imageUrls = model.ImageUrls?
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .ToList() ?? new List<string>();
 
                 // Создаем DTO
                 var dto = new CreateProductDTO
@@ -122,41 +86,22 @@ namespace Sportopoliten.Areas.Admin.Controllers
                 await _productService.CreateProductAsync(dto);
 
                 TempData["Success"] = "Товар успешно создан!";
-                return RedirectToAction("Index");
-            }
-            catch (UnauthorizedAccessException)
-            {
-                ModelState.AddModelError("", "Нет прав доступа для сохранения файлов. Проверьте права на папку wwwroot/images/products");
-            }
-            catch (DirectoryNotFoundException)
-            {
-                ModelState.AddModelError("", "Директория для сохранения не найдена");
-            }
-            catch (IOException ex)
-            {
-                ModelState.AddModelError("", $"Ошибка ввода-вывода при сохранении файла: {ex.Message}");
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"Произошла ошибка при создании товара: {ex.Message}");
             }
 
-            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+            ViewBag.Categories = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Title");
             return View(model);
-        }
-
-        // GET: AdminProduct/Index
-        public async Task<IActionResult> Index()
-        {
-            var products = await _productService.GetAllProductsAsync();
-            return View(products);
         }
 
         // GET: AdminProduct/Edit/5
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
+            var product = await _productService.GetProductForEditAsync(id);
             if (product == null)
                 return NotFound();
 
@@ -165,14 +110,14 @@ namespace Sportopoliten.Areas.Admin.Controllers
                 Id = product.Id,
                 Title = product.Title,
                 Description = product.Description,
-                CategoryId = product.CategoryId ?? 0,
+                CategoryId = product.CategoryId,
                 Price = product.Price,
-                ExistingImages = product.ProductImages?.Select(x => x.ImageUrl).ToList() ?? new()
+                ImageUrls = product.ImageUrls ?? new List<string>()
             };
 
             // Получаем категории и создаем SelectList
             var categories = await _categoryService.GetAllCategoriesAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Title");  // Важно!
+            ViewBag.Categories = new SelectList(categories, "Id", "Title");
 
             return View(model);
         }
@@ -182,90 +127,73 @@ namespace Sportopoliten.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EditProductViewModel model)
         {
+            // Подробное логирование
+            Console.WriteLine("=== START EDIT POST ===");
+            Console.WriteLine($"ID: {id}, Model ID: {model.Id}");
+            Console.WriteLine($"Title: {model.Title}");
+            Console.WriteLine($"Price: {model.Price}");
+            Console.WriteLine($"CategoryId: {model.CategoryId}");
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
+            // Выводим все ошибки ModelState
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("ModelState errors:");
+                foreach (var key in ModelState.Keys)
+                {
+                    var errors = ModelState[key].Errors;
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine($"  {key}: {error.ErrorMessage}");
+                    }
+                }
+            }
+
             if (id != model.Id)
+            {
+                Console.WriteLine("ID mismatch!");
                 return NotFound();
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                Console.WriteLine("ModelState is invalid, returning view");
+                ViewBag.Categories = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Title");
                 return View(model);
             }
 
             try
             {
-                // Создаем директорию для изображений, если её нет
-                string uploadPath = Path.Combine(_env.WebRootPath, "images", "products");
-                if (!Directory.Exists(uploadPath))
-                {
-                    Directory.CreateDirectory(uploadPath);
-                }
-
-                // Обрабатываем новые изображения
-                var newImageUrls = new List<string>();
-
-                if (model.NewImages != null && model.NewImages.Any())
-                {
-                    foreach (var image in model.NewImages)
-                    {
-                        if (image != null && image.Length > 0)
-                        {
-                            // Проверяем расширение файла
-                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                            var fileExtension = Path.GetExtension(image.FileName).ToLowerInvariant();
-
-                            if (!allowedExtensions.Contains(fileExtension))
-                            {
-                                ModelState.AddModelError("", $"Файл {image.FileName} имеет неподдерживаемый формат.");
-                                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
-                                return View(model);
-                            }
-
-                            // Генерируем уникальное имя файла
-                            var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                            var relativePath = Path.Combine("images", "products", fileName);
-                            var filePath = Path.Combine(_env.WebRootPath, relativePath);
-
-                            // Сохраняем файл
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await image.CopyToAsync(stream);
-                            }
-
-                            // Добавляем относительный путь к изображению
-                            newImageUrls.Add("/" + relativePath.Replace("\\", "/"));
-                        }
-                    }
-                }
+                Console.WriteLine("Starting update process...");
 
                 // Определяем, какие изображения нужно оставить
                 var imagesToKeep = new List<string>();
-                if (model.ExistingImages != null)
+
+                if (model.ImageUrls != null && model.ImageUrls.Any())
                 {
                     if (model.ImagesToDelete != null && model.ImagesToDelete.Any())
                     {
-                        // Оставляем только те, которые не отмечены для удаления
-                        imagesToKeep = model.ExistingImages
+                        imagesToKeep = model.ImageUrls
                             .Where(img => !model.ImagesToDelete.Contains(img))
                             .ToList();
-
-                        // Удаляем файлы с диска
-                        foreach (var imageToDelete in model.ImagesToDelete)
-                        {
-                            var filePath = Path.Combine(_env.WebRootPath, imageToDelete.TrimStart('/').Replace("/", "\\"));
-                            if (System.IO.File.Exists(filePath))
-                            {
-                                System.IO.File.Delete(filePath);
-                            }
-                        }
                     }
                     else
                     {
-                        imagesToKeep = model.ExistingImages;
+                        imagesToKeep = model.ImageUrls;
                     }
                 }
 
+                // Получаем новые URL изображений
+                var newImageUrls = model.NewImageUrls?
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .ToList() ?? new List<string>();
+
                 // Объединяем старые (неудаленные) и новые изображения
                 var allImages = imagesToKeep.Concat(newImageUrls).ToList();
+
+                Console.WriteLine($"Images to keep: {imagesToKeep.Count}");
+                Console.WriteLine($"New images: {newImageUrls.Count}");
+                Console.WriteLine($"Total images: {allImages.Count}");
 
                 // Создаем DTO
                 var dto = new UpdateProductDTO
@@ -277,19 +205,24 @@ namespace Sportopoliten.Areas.Admin.Controllers
                     ProductImages = allImages
                 };
 
+                Console.WriteLine($"Calling UpdateProductAsync with price: {dto.Price}");
                 await _productService.UpdateProductAsync(id, dto);
+                Console.WriteLine("Update completed successfully");
 
                 TempData["Success"] = "Товар успешно обновлен!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
+                Console.WriteLine($"KeyNotFoundException: {ex.Message}");
                 return NotFound();
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Exception: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 ModelState.AddModelError("", $"Ошибка при обновлении товара: {ex.Message}");
-                ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+                ViewBag.Categories = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Title");
                 return View(model);
             }
         }

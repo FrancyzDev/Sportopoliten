@@ -9,7 +9,8 @@ namespace Sportopoliten.Areas.Admin.ViewModels.Categories
         [Display(Name = "Название категории")]
         public string Title { get; set; } = string.Empty;
 
-        [Display(Name = "Изображение категории")]
-        public IFormFile? Image { get; set; }
+        [Display(Name = "URL изображения категории")]
+        [Url(ErrorMessage = "Пожалуйста, введите корректный URL адрес")]
+        public string? ImageUrl { get; set; }
     }
 }

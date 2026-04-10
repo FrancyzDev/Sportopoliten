@@ -1,8 +1,7 @@
-﻿@model Sportopoliten.DAL.Entities.Product
+﻿@model Sportopoliten.BLL.DTO.Product.ProductDTO
 
 @{
     ViewData["Title"] = "Удаление товара";
-    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -53,9 +52,9 @@
                                 <tr>
                                     <th>Категория</th>
                                     <td>
-                                        @if (Model.Category != null)
+                                        @if (Model.CategoryId != null)
                                         {
-                                            @Model.Category.Title
+                                            @Model.CategoryName
                                         }
                                         else
                                         {

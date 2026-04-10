@@ -75,7 +75,7 @@ namespace Sportopoliten.DAL.Repositories
 
         public async Task<T?> GetSingleWithQueryAsync(Func<IQueryable<T>, IQueryable<T>> queryOperation)
         {
-            IQueryable<T> query = _dbSet.AsNoTracking();
+            IQueryable<T> query = _dbSet;
 
             query = queryOperation(query);
 

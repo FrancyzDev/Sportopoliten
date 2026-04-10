@@ -10,15 +10,21 @@
 
         @if (Model.Items != null && Model.Items.Any())
         {
-            <h1>Кошик</h1>
+            <h1 class="cart_title">Кошик</h1>
             <div class="cart_total_info">
                 Усього: (@Model.TotalQuantity) @Model.TotalPrice
             </div>
             @foreach (var s in Model.Items)
             {
-                <div class="message">
-                    <p>@s.ProductName</p>
-                    <p>Количество: @s.Count</p>
+                <div class="cart_item">
+                    <img src="@s.ImageUrl" alt="@s.ProductName"/>
+                    <div class="cart_item_info">
+                        <div class="item_name_price_container">
+                            <p>@s.ProductName</p>
+                            <p>@s.Price</p>
+                        </div>
+                        <p>Количество: @s.Count</p>
+                    </div>
                 </div>
             }
         }

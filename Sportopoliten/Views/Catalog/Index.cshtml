@@ -257,6 +257,30 @@
                 $('#filterForm').submit();
             });
         });
+
+
+        async function addToCart(productId, event) {
+        if (event) event.preventDefault();
+        
+        const response = await fetch('/Catalog/AddToCart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `productId=${productId}`
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+        } 
+        else {
+            if (result.redirectToLogin) {
+                window.location.href = '/Account/Login';
+            } else {
+                alert(result.message);
+            }
+        }
+        }
     </script>
 }
 

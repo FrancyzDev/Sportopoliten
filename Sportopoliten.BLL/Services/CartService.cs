@@ -45,7 +45,7 @@ namespace Sportopoliten.BLL.Services
 
                         ProductName = product.Title,
                         Price = product.Price,
-                        ImageUrl = firstImage.ImageUrl
+                        ImageUrl = firstImage != null ? firstImage.ImageUrl : "https://media.licdn.com/dms/image/v2/C560BAQHvjs3O4Utmdw/company-logo_200_200/company-logo_200_200/0/1631351760522?e=2147483647&v=beta&t=98Nb6ha1qF7VFgRtzDHP0WzmNbTlI_r26j4Q4rm3nMg"
                     });
                 }
             }

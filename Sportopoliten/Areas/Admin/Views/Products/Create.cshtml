@@ -2,112 +2,119 @@
 
 @{
     ViewData["Title"] = "Создание товара";
-    Layout = "_Layout";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-gradient-primary text-white py-3 rounded-top-4">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="fas fa-plus-circle me-2"></i>@ViewData["Title"]
+                        <i class="fas fa-box-open me-2"></i>@ViewData["Title"]
                     </h4>
                 </div>
-                <div class="card-body p-4">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="card-body">
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Create" method="post" id="createProductForm">
                         @Html.AntiForgeryToken()
                         
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                        <div class="mb-4">
-                            <label asp-for="Title" class="form-label fw-bold">
-                                <i class="fas fa-tag me-2 text-primary"></i>Название товара
-                            </label>
-                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Введите название товара" />
-                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        @if (TempData["Success"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        @if (TempData["Error"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Title" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                    <input asp-for="Title" class="form-control" placeholder="Введите название товара" />
+                                </div>
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label asp-for="Description" class="form-label fw-bold">
-                                <i class="fas fa-align-left me-2 text-primary"></i>Описание
-                            </label>
-                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Введите описание товара"></textarea>
-                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Введите описание товара"></textarea>
+                            </div>
+                            <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="Price" class="form-label fw-bold">
-                                    <i class="fas fa-dollar-sign me-2 text-primary"></i>Цена
-                                </label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-light">₴</span>
-                                    <input asp-for="Price" class="form-control" placeholder="0.00" />
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                    <input asp-for="Price" class="form-control" placeholder="0.00" step="0.01" />
+                                    <span class="input-group-text">₴</span>
                                 </div>
-                                <span asp-validation-for="Price" class="text-danger small"></span>
+                                <span asp-validation-for="Price" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="CategoryId" class="form-label fw-bold">
-                                    <i class="fas fa-folder me-2 text-primary"></i>Категория
-                                </label>
-                                <select asp-for="CategoryId" class="form-select form-select-lg">
-                                    <option value="">-- Выберите категорию --</option>
-                                    @if (ViewBag.Categories != null)
-                                    {
-                                        foreach (var category in ViewBag.Categories)
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoryId" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-folder"></i></span>
+                                    <select asp-for="CategoryId" class="form-select">
+                                        <option value="">-- Выберите категорию --</option>
+                                        @if (ViewBag.Categories != null)
                                         {
-                                            <option value="@category.Value">@category.Text</option>
+                                            foreach (var category in ViewBag.Categories)
+                                            {
+                                                <option value="@category.Value">@category.Text</option>
+                                            }
                                         }
-                                    }
-                                </select>
-                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label asp-for="Images" class="form-label fw-bold">
-                                <i class="fas fa-images me-2 text-primary"></i>Изображения
+                        <!-- Поле для ввода URL изображений -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-images me-2"></i>URL изображений товара
                             </label>
-                            <div class="upload-area border border-2 border-dashed rounded-3 p-4 text-center" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>Перетащите файлы сюда или нажмите для выбора</h5>
-                                <p class="text-muted mb-3">Поддерживаются форматы: JPG, JPEG, PNG, GIF, WEBP</p>
-                                <input asp-for="Images" class="form-control d-none" type="file" multiple accept="image/*" id="imageInput" />
-                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('imageInput').click()">
-                                    <i class="fas fa-upload me-2"></i>Выбрать файлы
-                                </button>
+                            <div id="imagesContainer">
+                                <div class="input-group mb-2 image-url-group">
+                                    <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                    <input type="url" name="ImageUrls" class="form-control" placeholder="https://example.com/image.jpg" />
+                                    <button type="button" class="btn btn-danger remove-image-btn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <small class="text-muted">Можно выбрать несколько изображений</small>
-                            
-                            <div id="imagePreview" class="row mt-3 g-3"></div>
+                            <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm mt-2">
+                                <i class="fas fa-plus"></i> Добавить еще URL
+                            </button>
+                            <small class="form-text text-muted d-block mt-2">
+                                <i class="fas fa-info-circle"></i> Введите URL-адреса изображений товара. Можно добавить несколько ссылок.
+                            </small>
                         </div>
 
-                        <hr class="my-4" />
+                        <hr />
 
                         <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                                <i class="fas fa-arrow-left me-2"></i>Назад к списку
+                            <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Назад к списку
                             </a>
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
-                                <i class="fas fa-save me-2"></i>Создать товар
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save me-1"></i> Создать товар
                             </button>
                         </div>
                     </form>
@@ -117,333 +124,97 @@
     </div>
 </div>
 
-@section Styles {
-    <style>
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .border-dashed {
-            border-style: dashed !important;
-            border-width: 2px !important;
-            border-color: #667eea !important;
-        }
-        
-        .upload-area {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background-color: #f8f9fa;
-        }
-        
-        .upload-area:hover {
-            background-color: #e9ecef;
-            border-color: #764ba2 !important;
-        }
-        
-        .upload-area i {
-            transition: transform 0.3s ease;
-        }
-        
-        .upload-area:hover i {
-            transform: translateY(-5px);
-        }
-        
-        .card {
-            animation: slideIn 0.5s ease-out;
-            border: none;
-        }
-        
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #764ba2;
-            box-shadow: 0 0 0 0.25rem rgba(118, 75, 162, 0.25);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
-        .btn-outline-secondary {
-            transition: all 0.3s ease;
-        }
-        
-        .btn-outline-secondary:hover {
-            transform: translateX(-5px);
-        }
-        
-        .img-thumbnail {
-            border-radius: 8px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .img-thumbnail:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-        }
-        
-        .input-group-text {
-            border: 1px solid #ced4da;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .alert {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @@keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        .form-label {
-            color: #495057;
-            margin-bottom: 0.5rem;
-        }
-        
-        .text-primary {
-            color: #667eea !important;
-        }
-        
-        .col-3 {
-            animation: fadeInUp 0.5s ease-out;
-        }
-        
-        @@keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .field-validation-error {
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            display: block;
-        }
-        
-        .input-validation-error {
-            border-color: #dc3545 !important;
-        }
-        
-        .input-validation-error:focus {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
-        }
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-    </style>
-}
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
     }
     
-    <script>
-        $(document).ready(function() {
-            const uploadArea = $('#uploadArea');
-            const imageInput = $('#imageInput');
-            
-            uploadArea.on('dragover', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $(this).css({
-                    'background-color': '#e9ecef',
-                    'border-color': '#764ba2'
-                });
-            });
-            
-            uploadArea.on('dragleave', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $(this).css({
-                    'background-color': '#f8f9fa',
-                    'border-color': '#667eea'
-                });
-            });
-            
-            uploadArea.on('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                $(this).css({
-                    'background-color': '#f8f9fa',
-                    'border-color': '#667eea'
-                });
-                
-                const files = e.originalEvent.dataTransfer.files;
-                imageInput[0].files = files;
-                handleImagePreview(files);
-            });
-            
-            uploadArea.click(function() {
-                imageInput.click();
-            });
-            
-            uploadArea.find('button').click(function(e) {
-                e.stopPropagation();
-            });
-            
-            imageInput.change(function() {
-                const files = this.files;
-                handleImagePreview(files);
-            });
-            
-            function handleImagePreview(files) {
-                const preview = $('#imagePreview');
-                preview.empty();
-                
-                if (files.length > 0) {
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        if (file.size > 5 * 1024 * 1024) {
-                            showNotification(`Файл ${file.name} слишком большой. Максимальный размер 5MB`, 'error');
-                            continue;
-                        }
-                        
-                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-                        if (!allowedTypes.includes(file.type)) {
-                            showNotification(`Файл ${file.name} имеет неподдерживаемый формат`, 'error');
-                            continue;
-                        }
-                        
-                        const reader = new FileReader();
-                        
-                        reader.onload = function(e) {
-                            preview.append(`
-                                <div class="col-3">
-                                    <div class="position-relative">
-                                        <img src="${e.target.result}" class="img-thumbnail w-100" style="height: 100px; object-fit: cover;" />
-                                        <button type="button" class="btn-close position-absolute top-0 end-0 m-1 bg-white" 
-                                                onclick="removeImage(this, '${file.name}')"></button>
-                                    </div>
-                                </div>
-                            `);
-                        }
-                        
-                        reader.readAsDataURL(file);
-                    }
-                    
-                    if (preview.children().length === 0) {
-                        preview.append('<p class="text-muted">Нет корректных изображений для отображения</p>');
-                    }
+    .card-header {
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    
+    .btn-primary {
+        transition: all 0.2s ease;
+    }
+    
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+    
+    .alert {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .field-validation-error {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    
+    .input-validation-error {
+        border-color: #dc3545 !important;
+    }
+    
+        .input-validation-error:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25) !important;
+        }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Добавление нового поля для URL
+        const addImageBtn = document.getElementById('addImageBtn');
+        const imagesContainer = document.getElementById('imagesContainer');
+        
+        function updateRemoveButtons() {
+            const groups = document.querySelectorAll('.image-url-group');
+            groups.forEach((group, index) => {
+                const removeBtn = group.querySelector('.remove-image-btn');
+                if (groups.length === 1) {
+                    removeBtn.style.display = 'none';
                 } else {
-                    preview.append('<p class="text-muted">Нет выбранных изображений</p>');
-                }
-            }
-            
-            $('#Price').on('input', function() {
-                let value = $(this).val();
-                value = value.replace(/[^\d.]/g, '');
-                const parts = value.split('.');
-                if (parts.length > 2) {
-                    value = parts[0] + '.' + parts[1];
-                }
-                $(this).val(value);
-            });
-            
-            $('.validation-summary-errors').each(function() {
-                $(this).addClass('alert alert-danger').fadeIn('slow');
-            });
-        });
-        
-        function removeImage(btn, fileName) {
-            $(btn).closest('.col-3').fadeOut(300, function() {
-                $(this).remove();
-                if ($('#imagePreview').children().length === 0) {
-                    $('#imagePreview').append('<p class="text-muted">Нет выбранных изображений</p>');
+                    removeBtn.style.display = 'flex';
                 }
             });
-            
-            showNotification(`Изображение ${fileName} удалено из предпросмотра`, 'info');
         }
         
-        function showNotification(message, type = 'info') {
-            const notification = $(`
-                <div class="alert alert-${type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 9999;" role="alert">
-                    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `);
-            
-            $('body').append(notification);
-            
-            setTimeout(() => {
-                notification.fadeOut(300, function() {
-                    $(this).remove();
-                });
-            }, 5000);
+        if (addImageBtn) {
+            addImageBtn.addEventListener('click', function() {
+                const newGroup = document.createElement('div');
+                newGroup.className = 'input-group mb-2 image-url-group';
+                newGroup.innerHTML = `
+                    <span class="input-group-text"><i class="fas fa-link"></i></span>
+                    <input type="url" name="ImageUrls" class="form-control" placeholder="https://example.com/image.jpg" />
+                    <button type="button" class="btn btn-danger remove-image-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                imagesContainer.appendChild(newGroup);
+                updateRemoveButtons();
+            });
         }
         
-        let formChanged = false;
-        
-        $('form input, form textarea, form select').change(function() {
-            formChanged = true;
-        });
-        
-        $('form input[type="file"]').change(function() {
-            formChanged = true;
-        });
-        
-        window.addEventListener('beforeunload', function(e) {
-            if (formChanged) {
-                e.preventDefault();
-                e.returnValue = '';
+        // Удаление поля
+        imagesContainer.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-image-btn');
+            if (btn) {
+                btn.closest('.image-url-group').remove();
+                updateRemoveButtons();
             }
         });
         
-        $('form').submit(function() {
-            formChanged = false;
-        });
-    </script>
-}
+        // Инициализация - скрываем кнопку удаления если только одно поле
+        updateRemoveButtons();
+    });
+</script>

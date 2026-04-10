@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Редактирование товара";
-    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -15,7 +14,7 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <form asp-action="Edit" method="post" id="editProductForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
 
@@ -41,7 +40,7 @@
                                 <label asp-for="Price" class="form-label fw-bold"></label>
                                 <div class="input-group">
                                     <span class="input-group-text">₴</span>
-                                    <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                    <input asp-for="Price" class="form-control" placeholder="0.00" type="text" id="PriceInput" />
                                 </div>
                                 <span asp-validation-for="Price" class="text-danger"></span>
                             </div>
@@ -56,43 +55,53 @@
                             </div>
                         </div>
 
-                        <!-- Существующие изображения -->
-                        @if (Model.ExistingImages != null && Model.ExistingImages.Any())
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Текущие изображения</label>
-                                <div class="row g-2">
-                                    @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                        <!-- Все URL изображений -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-images me-1"></i>URL изображений товара
+                            </label>
+                            <div id="imagesContainer">
+                                @if (Model.ImageUrls != null && Model.ImageUrls.Any())
+                                {
+                                    foreach (var imageUrl in Model.ImageUrls)
                                     {
-                                        <div class="col-3 position-relative">
-                                            <div class="card">
-                                                <img src="@Model.ExistingImages[i]" class="card-img-top" style="height: 100px; object-fit: cover;" alt="Product image" />
-                                                <div class="card-body p-1 text-center">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox"
-                                                               name="ImagesToDelete" value="@Model.ExistingImages[i]"
-                                                               id="delete_@i" />
-                                                        <label class="form-check-label small" for="delete_@i">
-                                                            Удалить
-                                                        </label>
+                                        <div class="image-group mb-3 p-3 border rounded">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3">
+                                                    <div class="preview-container">
+                                                        <img src="@imageUrl"
+                                                             class="img-fluid rounded preview-img"
+                                                             style="height: 100px; width: 100%; object-fit: cover;"
+                                                             alt="Preview"
+                                                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23f8d7da\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23721c24\'%3EОшибка%3C/text%3E%3C/svg%3E'" />
                                                     </div>
+                                                </div>
+                                                <div class="col-md-7">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                                        <input type="url"
+                                                               name="ImageUrls"
+                                                               class="form-control image-url"
+                                                               value="@imageUrl"
+                                                               placeholder="https://example.com/image.jpg" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2 text-end">
+                                                    <button type="button" class="btn btn-danger btn-sm remove-image">
+                                                        <i class="fas fa-trash"></i> Удалить
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     }
-                                </div>
-                                <small class="text-muted">Отметьте изображения для удаления</small>
+                                }
                             </div>
-                        }
-
-                        <!-- Новые изображения -->
-                        <div class="mb-3">
-                            <label asp-for="NewImages" class="form-label fw-bold"></label>
-                            <input asp-for="NewImages" class="form-control" type="file" multiple accept="image/*" id="imageInput" />
-                            <small class="text-muted">Можно выбрать несколько новых изображений (jpg, jpeg, png, gif, webp)</small>
-                            
-                            <!-- Превью новых изображений -->
-                            <div id="imagePreview" class="row mt-2 g-2"></div>
+                            <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm mt-2">
+                                <i class="fas fa-plus"></i> Добавить URL изображения
+                            </button>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle"></i> Добавьте URL-адреса изображений товара. Можно изменять существующие и добавлять новые.
+                            </small>
                         </div>
 
                         <hr />
@@ -118,30 +127,210 @@
     }
 
     <script>
-        $(document).ready(function() {
-            // Предпросмотр новых изображений
-            $('#imageInput').change(function() {
-                const preview = $('#imagePreview');
-                preview.empty();
-
-                const files = this.files;
-                if (files.length > 0) {
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const reader = new FileReader();
-
-                        reader.onload = function(e) {
-                            preview.append(`
-                                <div class="col-3">
-                                    <img src="${e.target.result}" class="img-thumbnail w-100" style="height: 100px; object-fit: cover;" />
-                                </div>
-                            `);
-                        }
-
-                        reader.readAsDataURL(file);
-                    }
+        // === ОБРАБОТКА ЦЕНЫ ===
+        const priceInput = document.getElementById('PriceInput');
+        
+        if (priceInput) {
+            let priceValue = priceInput.value;
+            if (priceValue && !isNaN(parseFloat(priceValue))) {
+                priceInput.value = parseFloat(priceValue).toFixed(2);
+            }
+            
+            priceInput.addEventListener('input', function(e) {
+                let value = this.value;
+                value = value.replace(',', '.');
+                value = value.replace(/[^\d.]/g, '');
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                this.value = value;
+            });
+            
+            priceInput.addEventListener('blur', function() {
+                let value = parseFloat(this.value);
+                if (!isNaN(value)) {
+                    this.value = value.toFixed(2);
+                } else if (this.value === '') {
+                    this.value = '';
+                } else {
+                    this.value = '0.00';
                 }
             });
+        }
+        
+        // Обработка отправки формы
+        const form = document.getElementById('editProductForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (priceInput) {
+                    let priceValue = priceInput.value.replace(',', '.');
+                    priceInput.value = priceValue;
+                }
+                return true;
+            });
+        }
+        
+        // === РАБОТА С ИЗОБРАЖЕНИЯМИ ===
+        
+        // Функция обновления предпросмотра
+        function updatePreview(inputElement, previewImg) {
+            const url = inputElement.value.trim();
+            if (url) {
+                previewImg.src = url;
+                previewImg.onerror = function() {
+                    this.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23f8d7da\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23721c24\'%3EОшибка%3C/text%3E%3C/svg%3E';
+                };
+            } else {
+                previewImg.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23f8d7da\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23721c24\'%3EНет URL%3C/text%3E%3C/svg%3E';
+            }
+        }
+        
+        // Добавляем обработчики для существующих изображений
+        function addImageHandlers(group) {
+            const urlInput = group.querySelector('.image-url');
+            const previewImg = group.querySelector('.preview-img');
+            
+            if (urlInput && previewImg) {
+                urlInput.addEventListener('input', function() {
+                    updatePreview(this, previewImg);
+                });
+                urlInput.addEventListener('blur', function() {
+                    updatePreview(this, previewImg);
+                });
+            }
+            
+            const removeBtn = group.querySelector('.remove-image');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    group.remove();
+                });
+            }
+        }
+        
+        // Применяем обработчики ко всем существующим группам
+        document.querySelectorAll('.image-group').forEach(group => {
+            addImageHandlers(group);
         });
+        
+        // Создание новой группы для изображения
+        let imageCounter = document.querySelectorAll('.image-group').length;
+        
+        function createImageGroup(url = '') {
+            const group = document.createElement('div');
+            group.className = 'image-group mb-3 p-3 border rounded';
+            const index = imageCounter++;
+            
+            group.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <div class="preview-container">
+                            <img src="${url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23f8d7da\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23721c24\'%3EПредпросмотр%3C/text%3E%3C/svg%3E'}"
+                                 class="img-fluid rounded preview-img"
+                                 style="height: 100px; width: 100%; object-fit: cover;"
+                                 alt="Preview" />
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-link"></i></span>
+                            <input type="url"
+                                   name="ImageUrls"
+                                   class="form-control image-url"
+                                   value="${url}"
+                                   placeholder="https://example.com/image.jpg" />
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-image">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            addImageHandlers(group);
+            return group;
+        }
+        
+        // Добавление нового изображения
+        const addImageBtn = document.getElementById('addImageBtn');
+        const imagesContainer = document.getElementById('imagesContainer');
+        
+        if (addImageBtn) {
+            addImageBtn.addEventListener('click', function() {
+                const newGroup = createImageGroup();
+                imagesContainer.appendChild(newGroup);
+            });
+        }
+        
+        // Восстановление сохраненных новых URL (при ошибке валидации)
+        @if (Model.NewImageUrls != null && Model.NewImageUrls.Any())
+        {
+                foreach (var url in Model.NewImageUrls)
+                {
+                        @:const savedGroup = createImageGroup('@url');
+                        @:imagesContainer.appendChild(savedGroup);
+                }
+        }
     </script>
+}
+
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+        }
+        
+            .btn-warning:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+            }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+        
+        .image-group {
+            background-color: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+        
+            .image-group:hover {
+                background-color: #e9ecef;
+                border-color: #007bff !important;
+            }
+        
+        .preview-container {
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        img {
+            transition: transform 0.2s ease;
+        }
+        
+            img:hover {
+                transform: scale(1.02);
+            }
+        
+        .btn-danger {
+            transition: all 0.2s ease;
+        }
+        
+            .btn-danger:hover {
+                transform: scale(1.05);
+            }
+    </style>
 }

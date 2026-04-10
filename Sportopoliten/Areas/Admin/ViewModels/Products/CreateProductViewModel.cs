@@ -22,7 +22,7 @@ namespace Sportopoliten.Areas.Admin.ViewModels.Products
         [Display(Name = "Категория")]
         public int CategoryId { get; set; }
 
-        [Display(Name = "Изображения товара")]
-        public List<IFormFile>? Images { get; set; }
+        [Display(Name = "URL изображений товара")]
+        public List<string>? ImageUrls { get; set; }
     }
 }

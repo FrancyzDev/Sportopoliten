@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Создание категории";
-    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -15,7 +14,7 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
@@ -29,28 +28,24 @@
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
 
-                        <!-- Загрузка изображения -->
+                        <!-- URL изображения -->
                         <div class="mb-4">
-                            <label asp-for="Image" class="form-label fw-bold">
-                                <i class="fas fa-image me-2 text-primary"></i>Изображение категории
+                            <label asp-for="ImageUrl" class="form-label fw-bold">
+                                <i class="fas fa-link me-2 text-primary"></i>URL изображения категории
                             </label>
-                            <div class="upload-area border border-2 border-dashed rounded-3 p-4 text-center" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>Перетащите файл сюда или нажмите для выбора</h5>
-                                <p class="text-muted mb-3">Рекомендуемый размер: 300x300px. Форматы: JPG, PNG, WEBP, SVG</p>
-                                <input asp-for="Image" class="form-control d-none" type="file" accept="image/*" id="imageInput" />
-                                <!-- Кнопка выбора файла - убираем onclick и добавляем id -->
-                                <button type="button" class="btn btn-outline-primary" id="selectImageBtn">
-                                    <i class="fas fa-upload me-2"></i>Выбрать файл
-                                </button>
-                            </div>
-
-                            <!-- Превью изображения -->
-                            <div id="imagePreview" class="mt-3 text-center" style="display: none;">
-                                <img src="" class="img-thumbnail" style="max-height: 200px;" alt="Preview" />
-                                <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImageBtn">
-                                    <i class="fas fa-times"></i> Удалить
-                                </button>
+                            <input asp-for="ImageUrl" class="form-control form-control-lg" placeholder="https://example.com/image.jpg или /images/categories/photo.jpg" />
+                            <small class="text-muted">Введите полный URL или относительный путь к изображению</small>
+                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                            
+                            <!-- Превью по URL -->
+                            <div id="urlPreview" class="mt-3 text-center" style="display: none;">
+                                <label class="form-label fw-bold">Предпросмотр:</label>
+                                <div>
+                                    <img src="" class="img-thumbnail" style="max-height: 200px;" alt="Preview" id="previewImage" />
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="clearUrlBtn">
+                                        <i class="fas fa-times"></i> Очистить
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -77,100 +72,78 @@
     }
 
     <script>
-        // Ждем полной загрузки DOM
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM полностью загружен');
+            const imageUrlInput = document.getElementById('ImageUrl');
+            const urlPreview = document.getElementById('urlPreview');
+            const previewImage = document.getElementById('previewImage');
+            const clearUrlBtn = document.getElementById('clearUrlBtn');
             
-            // Получаем элементы
-            const imageInput = document.getElementById('imageInput');
-            const selectImageBtn = document.getElementById('selectImageBtn');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImg = imagePreview ? imagePreview.querySelector('img') : null;
-            const removeImageBtn = document.getElementById('removeImageBtn');
-            const uploadArea = document.getElementById('uploadArea');
-            
-            console.log('imageInput:', imageInput);
-            console.log('selectImageBtn:', selectImageBtn);
-            
-            // Проверяем, что элементы найдены
-            if (!imageInput) {
-                console.error('imageInput не найден!');
-                return;
-            }
-            
-            if (!selectImageBtn) {
-                console.error('selectImageBtn не найден!');
-                return;
-            }
-            
-            // Кнопка выбора файла - просто вызываем click на скрытом input
-            selectImageBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Кнопка нажата');
-                imageInput.click(); // Это должно открыть диалог выбора файла
-            });
-            
-            // Обработка выбора файла
-            imageInput.addEventListener('change', function(e) {
-                console.log('Файл выбран:', this.files);
+            // Функция для проверки URL и отображения превью
+            function previewImageFromUrl() {
+                const url = imageUrlInput.value.trim();
                 
-                if (this.files && this.files.length > 0) {
-                    const file = this.files[0];
-                    const reader = new FileReader();
+                if (url) {
+                    // Проверяем, что URL имеет формат изображения
+                    const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i;
+                    const isImageUrl = imageExtensions.test(url) ||
+                                      url.includes('images/') ||
+                                      url.startsWith('data:image');
                     
-                    reader.onload = function(e) {
-                        if (previewImg && imagePreview) {
-                            previewImg.src = e.target.result;
-                            imagePreview.style.display = 'block';
-                        }
-                    }
-                    
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            // Удаление изображения
-            if (removeImageBtn) {
-                removeImageBtn.addEventListener('click', function() {
-                    imageInput.value = '';
-                    if (imagePreview) imagePreview.style.display = 'none';
-                    if (previewImg) previewImg.src = '';
-                });
-            }
-            
-            // Drag and drop (упрощенно)
-            if (uploadArea) {
-                uploadArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#e9ecef';
-                    this.style.borderColor = '#764ba2';
-                });
-                
-                uploadArea.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#f8f9fa';
-                    this.style.borderColor = '#667eea';
-                });
-                
-                uploadArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#f8f9fa';
-                    this.style.borderColor = '#667eea';
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        imageInput.files = files;
+                    if (isImageUrl) {
+                        previewImage.src = url;
+                        urlPreview.style.display = 'block';
                         
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            if (previewImg && imagePreview) {
-                                previewImg.src = e.target.result;
-                                imagePreview.style.display = 'block';
-                            }
-                        }
-                        reader.readAsDataURL(files[0]);
+                        // Обработка ошибки загрузки изображения
+                        previewImage.onerror = function() {
+                            previewImage.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f8d7da"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23721c24"%3EОшибка загрузки%3C/text%3E%3C/svg%3E';
+                            showToast('Не удалось загрузить изображение по указанному URL', 'warning');
+                        };
+                    } else {
+                        hidePreview();
+                        showToast('URL не указывает на изображение', 'info');
                     }
+                } else {
+                    hidePreview();
+                }
+            }
+            
+            function hidePreview() {
+                urlPreview.style.display = 'none';
+                previewImage.src = '';
+            }
+            
+            function showToast(message, type = 'info') {
+                // Простой toast уведомление (можно заменить на более продвинутое решение)
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+                toast.style.zIndex = '9999';
+                toast.style.minWidth = '300px';
+                toast.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+            
+            // Слушаем изменения в поле URL
+            if (imageUrlInput) {
+                // Предпросмотр при вводе с задержкой
+                let timeoutId;
+                imageUrlInput.addEventListener('input', function() {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(previewImageFromUrl, 500);
+                });
+                
+                // Предпросмотр при потере фокуса
+                imageUrlInput.addEventListener('blur', previewImageFromUrl);
+            }
+            
+            // Кнопка очистки
+            if (clearUrlBtn) {
+                clearUrlBtn.addEventListener('click', function() {
+                    imageUrlInput.value = '';
+                    hidePreview();
                 });
             }
         });
@@ -183,31 +156,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
-        .border-dashed {
-            border-style: dashed !important;
-            border-width: 2px !important;
-            border-color: #667eea !important;
-        }
-        
-        .upload-area {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background-color: #f8f9fa;
-        }
-        
-            .upload-area:hover {
-                background-color: #e9ecef;
-                border-color: #764ba2 !important;
-            }
-        
-            .upload-area i {
-                transition: transform 0.3s ease;
-            }
-        
-            .upload-area:hover i {
-                transform: translateY(-5px);
-            }
-        
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -216,6 +164,15 @@
             .btn-primary:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+        
+        .img-thumbnail {
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+            .img-thumbnail:hover {
+                transform: scale(1.05);
             }
     </style>
 }

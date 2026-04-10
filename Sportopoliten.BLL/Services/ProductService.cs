@@ -16,6 +16,84 @@ namespace Sportopoliten.BLL.Services
             Database = uow;
         }
 
+        // НОВЫЙ МЕТОД: Возвращает DTO для Edit
+        public async Task<EditProductDTO?> GetProductForEditAsync(int id)
+        {
+            var product = await Database.Products.GetSingleWithQueryAsync(query => query
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.Id == id)
+            );
+
+            if (product == null)
+                return null;
+
+            return new EditProductDTO
+            {
+                Id = product.Id,
+                Title = product.Title,
+                Description = product.Description,
+                Price = product.Price,
+                CategoryId = product.CategoryId ?? 0,
+                CategoryName = product.Category?.Title,
+                ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+            };
+        }
+
+        // НОВЫЙ МЕТОД: Возвращает DTO для Details/Index
+        public async Task<ProductDTO?> GetProductByIdAsync(int id)
+        {
+            var product = await Database.Products.GetSingleWithQueryAsync(query => query
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.Id == id)
+            );
+
+            if (product == null)
+                return null;
+
+            return new ProductDTO
+            {
+                Id = product.Id,
+                Title = product.Title,
+                Description = product.Description,
+                Price = product.Price,
+                CategoryId = product.CategoryId ?? 0,
+                CategoryName = product.Category?.Title,
+                ProductImages = product.ProductImages?.Select(img => new ProductImage
+                {
+                    Id = img.Id,
+                    ImageUrl = img.ImageUrl,
+                    Priority = img.Priority
+                }).ToList() ?? new List<ProductImage>()
+            };
+        }
+
+        // НОВЫЙ МЕТОД: Возвращает коллекцию DTO для Index
+        public async Task<IEnumerable<ProductDTO>> GetAllProductsAsync()
+        {
+            var products = await Database.Products.GetWithQueryAsync(query => query
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+            );
+
+            return products.Select(product => new ProductDTO
+            {
+                Id = product.Id,
+                Title = product.Title,
+                Description = product.Description,
+                Price = product.Price,
+                CategoryId = product.CategoryId ?? 0,
+                CategoryName = product.Category?.Title,
+                ProductImages = product.ProductImages?.Select(img => new ProductImage
+                {
+                    Id = img.Id,
+                    ImageUrl = img.ImageUrl,
+                    Priority = img.Priority
+                }).ToList() ?? new List<ProductImage>()
+            }).ToList();
+        }
+
         public async Task<Product> CreateProductAsync(CreateProductDTO dto)
         {
             var product = new Product
@@ -27,11 +105,12 @@ namespace Sportopoliten.BLL.Services
                 ProductImages = new List<ProductImage>()
             };
 
-            foreach (var imageUrl in dto.ProductImages)
+            for (int i = 0; i < dto.ProductImages.Count; i++)
             {
                 product.ProductImages.Add(new ProductImage
                 {
-                    ImageUrl = imageUrl
+                    ImageUrl = dto.ProductImages[i],
+                    Priority = i
                 });
             }
 
@@ -52,7 +131,7 @@ namespace Sportopoliten.BLL.Services
                 throw new KeyNotFoundException("Товар не найден");
             }
 
-            // Обновляем основные поля (без Color и Size)
+            // Обновляем основные поля
             product.Title = dto.Title;
             product.Description = dto.Description;
             product.CategoryId = dto.CategoryId;
@@ -68,12 +147,13 @@ namespace Sportopoliten.BLL.Services
             if (dto.ProductImages != null && dto.ProductImages.Any())
             {
                 product.ProductImages = new List<ProductImage>();
-                foreach (var imageUrl in dto.ProductImages)
+                for (int i = 0; i < dto.ProductImages.Count; i++)
                 {
                     product.ProductImages.Add(new ProductImage
                     {
-                        ImageUrl = imageUrl,
-                        ProductId = product.Id
+                        ImageUrl = dto.ProductImages[i],
+                        ProductId = product.Id,
+                        Priority = i
                     });
                 }
             }
@@ -86,73 +166,54 @@ namespace Sportopoliten.BLL.Services
             var product = await Database.Products.GetSingleWithQueryAsync(query => query
                 .Include(p => p.ProductImages)
                 .Where(p => p.Id == productId)
-                );
+            );
 
             if (product == null)
                 throw new KeyNotFoundException("Товар не найден");
 
-            // Удаляем связанные изображения
             if (product.ProductImages != null && product.ProductImages.Any())
             {
                 Database.ProductImages.RemoveRange(product.ProductImages);
             }
 
-            // Удаляем товар
             Database.Products.Delete(product);
             await Database.SaveChangesAsync();
         }
 
-        // Дополнительные методы
-        public async Task<Product?> GetProductByIdAsync(int id)
-        {
-            return await Database.Products.GetSingleWithQueryAsync(query => query
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .Where(p => p.Id == id)
-            );
-        }
-
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
-        {
-            return await Database.Products.GetWithQueryAsync(query => query
-               .Include(p => p.Category)
-               .Include(p => p.ProductImages)
-           );
-        }
-
+        // Остальные методы без изменений...
         public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
         {
             return await Database.Products.GetWithQueryAsync(query => query
-            .Where(p => p.CategoryId == categoryId)
-            .Include(p => p.ProductImages)
-    );
+                .Where(p => p.CategoryId == categoryId)
+                .Include(p => p.ProductImages)
+            );
         }
 
         public async Task<IEnumerable<Product>> GetPagedProductsAsync(int page, int pageSize)
         {
             return await Database.Products.GetWithQueryAsync(query => query
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .OrderBy(p => p.Id) 
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-    );
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .OrderBy(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+            );
         }
 
         public async Task<int> GetTotalProductsCountAsync()
         {
             return await Database.Products.CountAsync();
         }
+
         public async Task<(IEnumerable<Product> Products, int TotalCount)> GetFilteredProductsAsync(
-           string? searchTerm,
-           int? categoryId,
-           decimal? minPrice,
-           decimal? maxPrice,
-           string? sortBy,
-           int page,
-           int pageSize)
+            string? searchTerm,
+            int? categoryId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            string? sortBy,
+            int page,
+            int pageSize)
         {
-            // Получаем все продукты с включенными данными
             var allProducts = await Database.Products.GetWithQueryAsync(query => query
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
@@ -160,7 +221,6 @@ namespace Sportopoliten.BLL.Services
 
             var productsQuery = allProducts.AsQueryable();
 
-            // Фильтрация по поисковому запросу
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 productsQuery = productsQuery.Where(p =>
@@ -168,13 +228,11 @@ namespace Sportopoliten.BLL.Services
                     (p.Description != null && p.Description.Contains(searchTerm)));
             }
 
-            // Фильтрация по категории
             if (categoryId.HasValue && categoryId.Value > 0)
             {
                 productsQuery = productsQuery.Where(p => p.CategoryId == categoryId);
             }
 
-            // Фильтрация по цене
             if (minPrice.HasValue)
             {
                 productsQuery = productsQuery.Where(p => p.Price >= minPrice.Value);
@@ -185,10 +243,8 @@ namespace Sportopoliten.BLL.Services
                 productsQuery = productsQuery.Where(p => p.Price <= maxPrice.Value);
             }
 
-            // Подсчет общего количества (до пагинации)
             var totalCount = productsQuery.Count();
 
-            // Сортировка
             productsQuery = sortBy switch
             {
                 "price_asc" => productsQuery.OrderBy(p => p.Price),
@@ -199,7 +255,6 @@ namespace Sportopoliten.BLL.Services
                 _ => productsQuery.OrderByDescending(p => p.Id)
             };
 
-            // Пагинация
             var products = productsQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

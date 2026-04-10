@@ -110,7 +110,7 @@ namespace Sportopoliten.Controllers
                 Description = product.Description,
                 Price = product.Price,
                 CategoryId = product.CategoryId ?? 0,
-                CategoryName = product.Category?.Title ?? "Без категории",
+                CategoryName = product.CategoryName ?? "Без категории",
                 Images = product.ProductImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>()
             };
 

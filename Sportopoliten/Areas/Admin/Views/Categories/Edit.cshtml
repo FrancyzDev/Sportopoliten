@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Редактирование категории";
-    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -15,10 +14,9 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <form asp-action="Edit" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
-                        <input type="hidden" asp-for="CurrentImageUrl" />
 
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -31,8 +29,8 @@
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
 
-                        <!-- Текущее изображение (только для просмотра) -->
-                        @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
+                        <!-- Текущее изображение -->
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
                             <div class="mb-4">
                                 <label class="form-label fw-bold">
@@ -40,41 +38,37 @@
                                 </label>
                                 <div class="row align-items-center">
                                     <div class="col-md-6">
-                                        <img src="@Model.CurrentImageUrl" class="img-thumbnail" style="max-height: 150px;" alt="@Model.Title" />
+                                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-height: 150px;" alt="@Model.Title"
+                                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'150\'%3E%3Crect width=\'150\' height=\'150\' fill=\'%23f8d7da\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23721c24\'%3EНе загружено%3C/text%3E%3C/svg%3E'" />
                                     </div>
                                     <div class="col-md-6">
                                         <div class="alert alert-info mb-0">
                                             <i class="fas fa-info-circle me-2"></i>
-                                            Если вы хотите заменить изображение, загрузите новое ниже.
+                                            Если вы хотите изменить изображение, укажите новый URL ниже.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         }
 
-                        <!-- Новое изображение -->
+                        <!-- URL изображения -->
                         <div class="mb-4">
-                            <label asp-for="Image" class="form-label fw-bold">
-                                <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>Новое изображение
+                            <label asp-for="ImageUrl" class="form-label fw-bold">
+                                <i class="fas fa-link me-2 text-primary"></i>URL изображения
                             </label>
-                            <div class="upload-area border border-2 border-dashed rounded-3 p-4 text-center" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>Перетащите файл сюда или нажмите для выбора</h5>
-                                <p class="text-muted mb-3">Рекомендуемый размер: 300x300px. Форматы: JPG, PNG, WEBP, SVG</p>
-                                <input asp-for="Image" class="form-control d-none" type="file" accept="image/*" id="imageInput" />
-                                <button type="button" class="btn btn-outline-primary" id="selectImageBtn">
-                                    <i class="fas fa-upload me-2"></i>Выбрать файл
-                                </button>
-                            </div>
-                            <small class="text-muted">Оставьте пустым, если не хотите менять изображение</small>
-
-                            <!-- Превью нового изображения -->
-                            <div id="imagePreview" class="mt-3 text-center" style="display: none;">
-                                <p class="mb-2 fw-bold">Новое изображение:</p>
-                                <img src="" class="img-thumbnail" style="max-height: 150px;" alt="Preview" />
-                                <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImageBtn">
-                                    <i class="fas fa-times"></i> Отменить выбор
-                                </button>
+                            <input asp-for="ImageUrl" class="form-control form-control-lg" placeholder="https://example.com/image.jpg или /images/categories/photo.jpg" />
+                            <small class="text-muted">Оставьте пустым, если не хотите менять изображение. Введите новый URL для замены.</small>
+                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                            
+                            <!-- Превью нового URL -->
+                            <div id="urlPreview" class="mt-3 text-center" style="display: none;">
+                                <label class="form-label fw-bold">Предпросмотр нового изображения:</label>
+                                <div>
+                                    <img src="" class="img-thumbnail" style="max-height: 150px;" alt="Preview" id="previewImage" />
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="clearUrlBtn">
+                                        <i class="fas fa-times"></i> Очистить
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -101,100 +95,168 @@
     }
 
     <script>
-        // Ждем полной загрузки DOM
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM полностью загружен - Edit');
+            const imageUrlInput = document.getElementById('ImageUrl');
+            const urlPreview = document.getElementById('urlPreview');
+            const previewImage = document.getElementById('previewImage');
+            const clearUrlBtn = document.getElementById('clearUrlBtn');
+        
+            // Функция для проверки, является ли URL изображением
+            function isImageUrl(url) {
+                if (!url) return false;
             
-            // Получаем элементы
-            const imageInput = document.getElementById('imageInput');
-            const selectImageBtn = document.getElementById('selectImageBtn');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImg = imagePreview ? imagePreview.querySelector('img') : null;
-            const removeImageBtn = document.getElementById('removeImageBtn');
-            const uploadArea = document.getElementById('uploadArea');
+                // Проверка на Data URL
+                if (url.startsWith('data:image/')) return true;
             
-            console.log('imageInput:', imageInput);
-            console.log('selectImageBtn:', selectImageBtn);
+                // Проверка на blob URL
+                if (url.startsWith('blob:')) return true;
             
-            // Проверяем, что элементы найдены
-            if (!imageInput) {
-                console.error('imageInput не найден!');
-                return;
+                // Проверка на расширения файлов (более гибкая)
+                const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?.*)?$/i;
+                if (imageExtensions.test(url)) return true;
+            
+                // Проверка на наличие в URL признаков изображения
+                const imageKeywords = /\/images\/|\/img\/|\/photo|\/picture|\/image|\/uploads\/|\/media\//i;
+                if (imageKeywords.test(url)) return true;
+            
+                // Если нет расширения, но URL не пустой - пробуем загрузить
+                // (возможно это endpoint, который возвращает изображение)
+                return true; // Даем шанс загрузиться
             }
+        
+            // Функция для отображения превью с проверкой загрузки
+            function previewImageFromUrl() {
+                const url = imageUrlInput.value.trim();
             
-            if (!selectImageBtn) {
-                console.error('selectImageBtn не найден!');
-                return;
-            }
-            
-            // Кнопка выбора файла - просто вызываем click на скрытом input
-            selectImageBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Кнопка нажата');
-                imageInput.click(); // Это должно открыть диалог выбора файла
-            });
-            
-            // Обработка выбора файла
-            imageInput.addEventListener('change', function(e) {
-                console.log('Файл выбран:', this.files);
+                if (url && isImageUrl(url)) {
+                    // Показываем превью с индикатором загрузки
+                    urlPreview.style.display = 'block';
+                    previewImage.src = url;
                 
-                if (this.files && this.files.length > 0) {
-                    const file = this.files[0];
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        if (previewImg && imagePreview) {
-                            previewImg.src = e.target.result;
-                            imagePreview.style.display = 'block';
+                    // Устанавливаем таймаут для проверки загрузки
+                    let loadingTimeout = setTimeout(function() {
+                        if (!previewImage.complete) {
+                            previewImage.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23fff3cd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2385604e"%3EЗагрузка...%3C/text%3E%3C/svg%3E';
                         }
-                    }
-                    
-                    reader.readAsDataURL(file);
+                    }, 500);
+                
+                    // Обработка успешной загрузки
+                    previewImage.onload = function() {
+                        clearTimeout(loadingTimeout);
+                        // Изображение успешно загружено
+                        previewImage.style.border = '2px solid #28a745';
+                        setTimeout(() => {
+                            if (previewImage) previewImage.style.border = 'none';
+                        }, 2000);
+                    };
+                
+                    // Обработка ошибки загрузки
+                    previewImage.onerror = function() {
+                        clearTimeout(loadingTimeout);
+                        previewImage.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f8d7da"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23721c24"%3EНе удалось загрузить%3C/text%3E%3Ctext x="50%25" y="60%25" text-anchor="middle" dy=".3em" fill="%23721c24" font-size="12"%3Eпроверьте URL%3C/text%3E%3C/svg%3E';
+                        showToast('Не удалось загрузить изображение. Проверьте URL и доступность изображения.', 'warning');
+                    };
+                } else if (url && !isImageUrl(url)) {
+                    // URL есть, но возможно это не изображение - все равно пробуем загрузить
+                    urlPreview.style.display = 'block';
+                    previewImage.src = url;
+                    previewImage.onerror = function() {
+                        previewImage.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f8d7da"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23721c24"%3EНе изображение%3C/text%3E%3C/svg%3E';
+                        showToast('URL не указывает на изображение или недоступен', 'warning');
+                    };
+                } else {
+                    hidePreview();
                 }
-            });
+            }
+        
+            function hidePreview() {
+                urlPreview.style.display = 'none';
+                if (previewImage) {
+                    previewImage.src = '';
+                    previewImage.style.border = 'none';
+                }
+            }
+        
+            function showToast(message, type = 'info') {
+                // Создаем уведомление
+                const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+                const toastId = 'toast_' + Date.now();
             
-            // Удаление изображения
-            if (removeImageBtn) {
-                removeImageBtn.addEventListener('click', function() {
-                    imageInput.value = '';
-                    if (imagePreview) imagePreview.style.display = 'none';
-                    if (previewImg) previewImg.src = '';
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white bg-${type === 'warning' ? 'warning' : 'danger'} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : 'times-circle'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `;
+            
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 3000 });
+                toast.show();
+            
+                // Удаляем после скрытия
+                toastElement.addEventListener('hidden.bs.toast', function() {
+                    this.remove();
                 });
             }
+        
+            function createToastContainer() {
+                const container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.style.position = 'fixed';
+                container.style.top = '20px';
+                container.style.right = '20px';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+                return container;
+            }
+        
+            // Функция для мгновенной проверки и превью
+            function quickPreview() {
+                const url = imageUrlInput.value.trim();
+                if (url) {
+                    // Показываем превью без долгой проверки
+                    urlPreview.style.display = 'block';
+                    previewImage.src = url;
+                    previewImage.onerror = function() {
+                        // Молча обрабатываем ошибку, не показывая toast при каждом символе
+                        previewImage.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f8d7da"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23721c24"%3E?%3C/text%3E%3C/svg%3E';
+                    };
+                } else {
+                    hidePreview();
+                }
+            }
+        
+            // Слушаем изменения в поле URL
+            if (imageUrlInput) {
+                // Предпросмотр при вводе (быстрый)
+                imageUrlInput.addEventListener('input', function() {
+                    quickPreview();
+                });
             
-            // Drag and drop
-            if (uploadArea) {
-                uploadArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#e9ecef';
-                    this.style.borderColor = '#764ba2';
-                });
-                
-                uploadArea.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#f8f9fa';
-                    this.style.borderColor = '#667eea';
-                });
-                
-                uploadArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.style.backgroundColor = '#f8f9fa';
-                    this.style.borderColor = '#667eea';
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        imageInput.files = files;
-                        
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            if (previewImg && imagePreview) {
-                                previewImg.src = e.target.result;
-                                imagePreview.style.display = 'block';
-                            }
-                        }
-                        reader.readAsDataURL(files[0]);
+                // Полная проверка при потере фокуса
+                imageUrlInput.addEventListener('blur', function() {
+                    if (imageUrlInput.value.trim()) {
+                        previewImageFromUrl();
                     }
+                });
+            
+                // Проверка при загрузке страницы (если есть значение)
+                if (imageUrlInput.value.trim()) {
+                    setTimeout(previewImageFromUrl, 500);
+                }
+            }
+        
+            // Кнопка очистки
+            if (clearUrlBtn) {
+                clearUrlBtn.addEventListener('click', function() {
+                    imageUrlInput.value = '';
+                    hidePreview();
                 });
             }
         });
@@ -208,25 +270,6 @@
             border-width: 2px !important;
             border-color: #667eea !important;
         }
-        
-        .upload-area {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background-color: #f8f9fa;
-        }
-        
-            .upload-area:hover {
-                background-color: #e9ecef;
-                border-color: #764ba2 !important;
-            }
-        
-            .upload-area i {
-                transition: transform 0.3s ease;
-            }
-        
-            .upload-area:hover i {
-                transform: translateY(-5px);
-            }
         
         .btn-warning {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);

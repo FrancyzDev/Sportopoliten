@@ -1,8 +1,7 @@
-﻿@model IEnumerable<Sportopoliten.DAL.Entities.Product>
+﻿@model IEnumerable<Sportopoliten.BLL.DTO.Product.ProductDTO>
 
 @{
     ViewData["Title"] = "Управление товарами";
-    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -77,9 +76,9 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (product.Category != null)
+                                        @if (product.CategoryId != null)
                                         {
-                                            <span class="badge bg-info">@product.Category.Title</span>
+                                            <span class="badge bg-info">@product.CategoryName</span>
                                         }
                                         else
                                         {

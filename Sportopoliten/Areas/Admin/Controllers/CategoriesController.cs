@@ -11,14 +11,10 @@ namespace Sportopoliten.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
-        private readonly IWebHostEnvironment _env;
 
-        public CategoriesController(
-            ICategoryService categoryService,
-            IWebHostEnvironment env)
+        public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
-            _env = env;
         }
 
         // GET: AdminCategory/Index
@@ -55,46 +51,10 @@ namespace Sportopoliten.Areas.Admin.Controllers
 
             try
             {
-                string? imageUrl = null;  // Здесь будем хранить URL сохраненного изображения
-
-                // Проверяем, загружен ли файл
-                if (model.Image != null && model.Image.Length > 0)
-                {
-                    // Проверяем расширение файла
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" };
-                    var fileExtension = Path.GetExtension(model.Image.FileName).ToLowerInvariant();
-
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        ModelState.AddModelError("Image", $"Неподдерживаемый формат. Разрешены: {string.Join(", ", allowedExtensions)}");
-                        return View(model);
-                    }
-
-                    // Создаем директорию для изображений категорий
-                    string uploadPath = Path.Combine(_env.WebRootPath, "images", "categories");
-                    if (!Directory.Exists(uploadPath))
-                    {
-                        Directory.CreateDirectory(uploadPath);
-                    }
-
-                    // Генерируем уникальное имя файла
-                    string fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    string relativePath = Path.Combine("images", "categories", fileName);
-                    string filePath = Path.Combine(_env.WebRootPath, relativePath);
-
-                    // Сохраняем файл
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.Image.CopyToAsync(stream);
-                    }
-
-                    imageUrl = "/" + relativePath.Replace("\\", "/");
-                }
-
                 var dto = new CreateCategoryDTO
                 {
                     Title = model.Title,
-                    ImageUrl = imageUrl
+                    ImageUrl = model.ImageUrl // Просто передаем URL из модели
                 };
 
                 await _categoryService.CreateCategoryAsync(dto);
@@ -121,7 +81,7 @@ namespace Sportopoliten.Areas.Admin.Controllers
             {
                 Id = category.Id,
                 Title = category.Title,
-                CurrentImageUrl = category.ImageUrl
+                ImageUrl = category.ImageUrl // Теперь просто строка с URL
             };
 
             return View(model);
@@ -141,57 +101,11 @@ namespace Sportopoliten.Areas.Admin.Controllers
 
             try
             {
-                string? imageUrl = model.CurrentImageUrl; // По умолчанию оставляем текущее
-
-                // Если загружен новый файл
-                if (model.Image != null && model.Image.Length > 0)
-                {
-                    // Проверяем расширение файла
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" };
-                    var fileExtension = Path.GetExtension(model.Image.FileName).ToLowerInvariant();
-
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        ModelState.AddModelError("Image", $"Неподдерживаемый формат. Разрешены: {string.Join(", ", allowedExtensions)}");
-                        return View(model);
-                    }
-
-                    // Создаем директорию для изображений категорий
-                    string uploadPath = Path.Combine(_env.WebRootPath, "images", "categories");
-                    if (!Directory.Exists(uploadPath))
-                    {
-                        Directory.CreateDirectory(uploadPath);
-                    }
-
-                    // Генерируем уникальное имя файла
-                    string fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    string relativePath = Path.Combine("images", "categories", fileName);
-                    string filePath = Path.Combine(_env.WebRootPath, relativePath);
-
-                    // Сохраняем файл
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.Image.CopyToAsync(stream);
-                    }
-
-                    imageUrl = "/" + relativePath.Replace("\\", "/");
-
-                    // Удаляем старое изображение с диска, если оно было
-                    if (!string.IsNullOrEmpty(model.CurrentImageUrl) && model.CurrentImageUrl.StartsWith("/images/categories/"))
-                    {
-                        var oldFilePath = Path.Combine(_env.WebRootPath, model.CurrentImageUrl.TrimStart('/').Replace("/", "\\"));
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                        }
-                    }
-                }
-
                 // Создаем DTO для обновления
                 var dto = new UpdateCategoryDTO
                 {
                     Title = model.Title,
-                    ImageUrl = imageUrl
+                    ImageUrl = model.ImageUrl // Просто передаем URL из модели
                 };
 
                 // Обновляем категорию в базе данных
@@ -238,18 +152,7 @@ namespace Sportopoliten.Areas.Admin.Controllers
         {
             try
             {
-                var category = await _categoryService.GetCategoryByIdAsync(id);
-
-                // Удаляем изображение с диска
-                if (category != null && !string.IsNullOrEmpty(category.ImageUrl) && category.ImageUrl.StartsWith("/images/categories/"))
-                {
-                    var filePath = Path.Combine(_env.WebRootPath, category.ImageUrl.TrimStart('/').Replace("/", "\\"));
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-                }
-
+                // Удаляем категорию (сервис сам должен удалить изображение, если нужно)
                 await _categoryService.DeleteCategoryAsync(id);
                 TempData["Success"] = "Категория успешно удалена!";
             }

@@ -43,6 +43,22 @@
                        asp-area="Admin" asp-controller="Users" asp-action="Index">
                         <i class="fas fa-users"></i> Пользователи
                     </a>
+
+                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")" 
+                       asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                        <i class="fas fa-folder"></i> Категории
+                    </a>
+
+                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")" 
+                       asp-area="Admin" asp-controller="Products" asp-action="Index">
+                        <i class="fas fa-box"></i> Товары
+                    </a>
+
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")" 
+                       asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                        <i class="fas fa-shopping-cart"></i> Заказы
+                    </a>
+
                     <a class="nav-link" href="/">
                         <i class="fas fa-home"></i> На сайт
                     </a>
@@ -66,5 +82,6 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    @await RenderSectionAsync("Styles", required: false)
 </body>
 </html>

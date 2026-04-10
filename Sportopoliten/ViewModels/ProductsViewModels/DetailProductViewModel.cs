@@ -1,6 +1,4 @@
-﻿using Sportopoliten.ViewModels.CatalogViewModels;
-
-namespace Sportopoliten.ViewModels.ProductViewModels
+﻿namespace Sportopoliten.ViewModels.ProductViewModels
 {
     public class DetailProductViewModel
     {

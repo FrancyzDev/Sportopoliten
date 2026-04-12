@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Sportopoliten.BLL/Sportopoliten.BLL.csproj" />
   <Project Path="Sportopoliten.DAL/Sportopoliten.DAL.csproj" />
+  <Project Path="Sportopoliten.Tests/Sportopoliten.Tests.csproj" />
   <Project Path="Sportopoliten/Sportopoliten.csproj" />
 </Solution>

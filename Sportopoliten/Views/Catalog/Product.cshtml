@@ -89,7 +89,7 @@
 
                 <!-- Кнопки действий -->
                 <div class="actions">
-                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart()">
+                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart(@Model.Id)">
                         <i class="fas fa-shopping-cart me-2"></i>Додати до кошика
                     </button>
                     <button class="btn btn-outline-secondary w-100" onclick="addToWishlist()">
@@ -131,9 +131,9 @@
         });
         });
         
-        // Добавление в корзину
-        async function addToCart() {
-        if (!selectedSize) {
+        //Добавление в корзину
+        async function addToCart(event) {
+        if (typeof selectedSize === 'undefined' || !selectedSize) {
         Swal.fire({
         icon: 'warning',
         title: 'Виберіть розмір',
@@ -142,66 +142,70 @@
         });
         return;
         }
-            
-        const quantity = parseInt(document.getElementById('quantity').value);
+
+        const quantity = parseInt(document.getElementById('quantity').value) || 1;
         const productId = @Model.Id;
-            
-        const button = event?.currentTarget;
+    
+        const button = event?.currentTarget || event?.target;
+    
         if (button) {
+        button.dataset.originalHtml = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Додається...';
         button.disabled = true;
         }
-            
+
         try {
-        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+        const params = new URLSearchParams();
+        params.append('productId', productId);
+        params.append('count', quantity);
+        params.append('size', selectedSize);
+
+        const response = await fetch('@Url.Action("AddToCart", "Catalog")', { 
         method: 'POST',
         headers: {
-        'Content-Type': 'application/json',
-        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify({
-        productId: productId,
-        count: quantity,
-        size: selectedSize
-        })
+        body: params
         });
-                
+
         const result = await response.json();
-                
+
         if (result.success) {
         Swal.fire({
         icon: 'success',
         title: 'Додано!',
-        text: `${@Model.Title} (${selectedSize}) - ${quantity} шт.`,
+        text: `@Html.Raw(Model.Title) (${selectedSize}) - ${quantity} шт.`,
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true
         });
-                    
-        updateCartCounter();
-                    
+            
+        if (typeof updateCartCounter === "function") updateCartCounter();
+
         if (button) {
         button.innerHTML = '<i class="fas fa-check me-2"></i>Додано!';
         setTimeout(() => {
-        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.innerHTML = button.dataset.originalHtml;
         button.disabled = false;
         }, 1500);
         }
         } else {
         Swal.fire('Помилка', result.message, 'error');
-        if (button) {
-        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
-        button.disabled = false;
-        }
+        resetButton(button);
         }
         } catch (error) {
+        console.error('Error:', error);
         Swal.fire('Помилка', 'Не вдалося додати товар до кошика', 'error');
-        if (button) {
-        button.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
-        button.disabled = false;
+        resetButton(button);
         }
+        }
+
+        function resetButton(button) {
+        if (button) {
+        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.disabled = false;
         }
         }
         

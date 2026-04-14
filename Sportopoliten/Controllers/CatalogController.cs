@@ -2,6 +2,7 @@
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.ViewModels.CatalogViewModels;
 using Sportopoliten.ViewModels.ProductViewModels;
+using System.Security.Claims;
 
 namespace Sportopoliten.Controllers
 {
@@ -9,13 +10,16 @@ namespace Sportopoliten.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly ICartService _cartService;
 
         public CatalogController(
             IProductService productService,
-            ICategoryService categoryService)
+            ICategoryService categoryService,
+            ICartService cartService)
         {
             _productService = productService;
             _categoryService = categoryService;
+            _cartService = cartService;
         }
 
         // GET: Catalog
@@ -132,6 +136,31 @@ namespace Sportopoliten.Controllers
         public IActionResult Search(string term)
         {
             return RedirectToAction(nameof(Index), new { searchTerm = term });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int productId)
+        {
+            try
+            {
+                if (User.Identity?.IsAuthenticated != true)
+                {
+                    return Json(new { success = false, redirectToLogin = true, message = "Пожалуйста, войдите в систему" });
+                }
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Json(new { success = false, message = "Пользователь не найден" });
+                }
+                int userId = int.Parse(userIdClaim.Value);
+                await _cartService.AddToCartAsync(userId, productId, 1);
+                return Json(new { success = true, message = "Товар успешно добавлен!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Ошибка: " + ex.Message });
+            }
         }
     }
 }

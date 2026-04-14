@@ -29,3 +29,70 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+
+/*----------------------| CART CSS |------------------------------*/
+
+
+
+.main_cart_container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.cart_content {
+    width: 90%;
+}
+
+.cart_title {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.empty_cart_message {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.back_to_store_btn {
+    color: white;
+    background-color: black;
+    font-weight: bold;
+    padding: 15px;
+    text-decoration: none;
+}
+
+
+.cart_item {
+    display: flex;
+    border: 1px solid black;
+    padding: 10px;
+    width: 70%;
+}
+
+.cart_item_info {
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    width: 100%;
+}
+
+.item_name_price_container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 120px;
+}
+
+.amount_of_cart_items_container {   
+    display: flex;
+    justify-content: space-between;
+}
+
+.delete_cart_btn {
+    color: red;
+    width: 30px;
+    border: none;
+}
+
+/*----------------------| CART CSS |------------------------------*/

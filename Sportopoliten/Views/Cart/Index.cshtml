@@ -1,0 +1,120 @@
+﻿@model Sportopoliten.BLL.DTO.Cart.CartDTO
+
+@{
+    ViewData["Title"] = "Корзина";
+    Layout = "_Layout";
+}
+
+<div class="main_cart_container">
+    <div class="cart_content">
+
+        @if (Model.Items != null && Model.Items.Any())
+        {
+            <h1 class="cart_title">Кошик</h1>
+            <div class="cart_total_info">
+                Усього: (@Model.TotalQuantity) @Model.TotalPrice
+            </div>
+            @foreach (var s in Model.Items)
+            {
+                <div class="cart_item">
+                    <img src="@s.ImageUrl" alt="@s.ProductName"/>
+                    <div class="cart_item_info">
+                        <div class="item_name_price_container">
+                            <p>@s.ProductName</p>
+                            <p>@s.Price</p>
+                        </div>
+                        <div class="quantity-selector mb-4">
+                            <label class="form-label fw-bold">Кількість:</label>
+                            <div class="input-group" style="width: 150px;">
+                                <button class="btn btn-outline-secondary" type="button"
+                                        onclick="decrementQuantity(@s.ProductId)">-</button>
+                    
+                                <input type="number" id="quantity-@s.ProductId"
+                                       class="form-control text-center"
+                                       value="@s.Count" min="1" max="99" readonly>
+                    
+                                <button class="btn btn-outline-secondary" type="button"
+                                        onclick="incrementQuantity(@s.ProductId)">+</button>
+                            </div>
+                        </div>
+                        <button class="delete_cart_btn" onclick="deleteCartItem(@s.ProductId)">Видалити</button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty_cart_message_container">
+                <h1 class="empty_cart_message">Кошик порожній.</h1>
+                <br/>
+                <a asp-controller="Catalog" asp-action="Index" class="back_to_store_btn">
+                    За покупками ->
+                </a>
+            </div>
+        }
+    </div>
+    <div class="cart_total_info"></div>
+</div>
+<script>
+    function incrementQuantity(productId) {
+        const input = document.getElementById('quantity-' + productId);
+        let value = parseInt(input.value);
+        if (value < 99) {
+            value++;
+            input.value = value;
+            updateCartQuantity(productId, value);
+        }
+    }
+
+    function decrementQuantity(productId) {
+        const input = document.getElementById('quantity-' + productId);
+        let value = parseInt(input.value);
+        if (value > 1) {
+            value--;
+            input.value = value;
+            updateCartQuantity(productId, value);
+        }
+    }
+
+    async function updateCartQuantity(productId, newCount) {
+        try {
+            const response = await fetch('/Cart/UpdateQuantity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `productId=${productId}&count=${newCount}`
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                alert("Помилка: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+    async function deleteCartItem(productId) {
+        if (!confirm("Ви впевнені, що хочете видалити цей товар з кошика?")) {
+        return;
+        }
+        
+        try {
+        const response = await fetch('/Cart/RemoveFromCart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `productId=${productId}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            location.reload();
+        } else {
+            alert("Помилка при видаленні: " + result.message);
+        }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+</script>

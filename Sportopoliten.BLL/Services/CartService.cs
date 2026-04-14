@@ -2,6 +2,7 @@
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.DAL.Entities;
 using Sportopoliten.DAL.Interfaces;
+using Sportopoliten.DAL.Repositories;
 
 namespace Sportopoliten.BLL.Services
 {
@@ -45,10 +46,11 @@ namespace Sportopoliten.BLL.Services
 
                         ProductName = product.Title,
                         Price = product.Price,
-                        ImageUrl = firstImage.ImageUrl
+                        ImageUrl = firstImage != null ? firstImage.ImageUrl : "https://media.licdn.com/dms/image/v2/C560BAQHvjs3O4Utmdw/company-logo_200_200/company-logo_200_200/0/1631351760522?e=2147483647&v=beta&t=98Nb6ha1qF7VFgRtzDHP0WzmNbTlI_r26j4Q4rm3nMg"
                     });
                 }
             }
+
             return new CartDTO
             {
                 Items = itemDTOs,
@@ -95,6 +97,24 @@ namespace Sportopoliten.BLL.Services
             await Database.SaveChangesAsync();
         }
 
+        public async Task UpdateQuantityAsync(int userId, int productId, int count)
+        {
+            var carts = await Database.Carts.FindAsync(c => c.UserId == userId);
+            var cart = carts.FirstOrDefault();
+
+            if (cart != null)
+            {
+                var cartItems = await Database.CartItems.FindAsync(ci => ci.CartId == cart.Id && ci.ProductId == productId);
+                var existingItem = cartItems.FirstOrDefault();
+
+                if (existingItem != null)
+                {
+                    existingItem.Count = count;
+                    Database.CartItems.Update(existingItem);
+                    await Database.SaveChangesAsync();
+                }
+            }
+        }
 
         public async Task RemoveItemAsync(int productId, int userId)
         {
@@ -110,29 +130,28 @@ namespace Sportopoliten.BLL.Services
             }
         }
 
+        //public async Task UpdateQuantityAsync(int productId, int userId, int count)
+        //{
+        //    var items = await Database.CartItems.FindAsync(ci =>
+        //        ci.ProductId == productId && ci.Cart.UserId == userId);
+        //    var item = items.FirstOrDefault();
 
-        public async Task UpdateQuantityAsync(int productId, int userId, int count)
-        {
-            var items = await Database.CartItems.FindAsync(ci =>
-                ci.ProductId == productId && ci.Cart.UserId == userId);
-            var item = items.FirstOrDefault();
+        //    if (item != null)
+        //    {
+        //        item.Count = count;
 
-            if (item != null)
-            {
-                item.Count = count;
+        //        if (item.Count <= 0)
+        //        {
+        //            Database.CartItems.Delete(item);
+        //        }
+        //        else
+        //        {
+        //            Database.CartItems.Update(item);
+        //        }
 
-                if (item.Count <= 0)
-                {
-                    Database.CartItems.Delete(item);
-                }
-                else
-                {
-                    Database.CartItems.Update(item);
-                }
-
-                await Database.SaveChangesAsync();
-            }
-        }
+        //        await Database.SaveChangesAsync();
+        //    }
+        //}
 
 
         public async Task ClearCartAsync(int userId)

@@ -39,11 +39,6 @@
                     <h5 class="text-white">Админ-панель</h5>
                 </div>
                 <nav class="nav flex-column">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")" 
-                       asp-area="Admin" asp-controller="Users" asp-action="Index">
-                        <i class="fas fa-users"></i> Пользователи
-                    </a>
-
                      <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")" 
                        asp-area="Admin" asp-controller="Categories" asp-action="Index">
                         <i class="fas fa-folder"></i> Категории
@@ -54,6 +49,11 @@
                         <i class="fas fa-box"></i> Товары
                     </a>
 
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")" 
+                       asp-area="Admin" asp-controller="Users" asp-action="Index">
+                        <i class="fas fa-users"></i> Пользователи
+                    </a>
+
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")" 
                        asp-area="Admin" asp-controller="Orders" asp-action="Index">
                         <i class="fas fa-shopping-cart"></i> Заказы
@@ -61,9 +61,6 @@
 
                     <a class="nav-link" href="/">
                         <i class="fas fa-home"></i> На сайт
-                    </a>
-                    <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Logout">
-                        <i class="fas fa-sign-out-alt"></i> Выход
                     </a>
                 </nav>
             </div>

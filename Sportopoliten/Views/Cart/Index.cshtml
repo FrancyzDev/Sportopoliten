@@ -1,120 +1,337 @@
 ﻿@model Sportopoliten.BLL.DTO.Cart.CartDTO
-
 @{
     ViewData["Title"] = "Корзина";
     Layout = "_Layout";
+    
+    decimal shippingCost = Model.TotalPrice >= 2000 ? 0 : 120;
+    decimal totalWithShipping = Model.TotalPrice + shippingCost;
 }
 
-<div class="main_cart_container">
-    <div class="cart_content">
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+            <li class="breadcrumb-item active">Корзина</li>
+        </ol>
+    </div>
+</nav>
 
+<section class="cart-section py-5">
+    <div class="container">
         @if (Model.Items != null && Model.Items.Any())
         {
-            <h1 class="cart_title">Кошик</h1>
-            <div class="cart_total_info">
-                Усього: (@Model.TotalQuantity) @Model.TotalPrice
-            </div>
-            @foreach (var s in Model.Items)
-            {
-                <div class="cart_item">
-                    <img src="@s.ImageUrl" alt="@s.ProductName"/>
-                    <div class="cart_item_info">
-                        <div class="item_name_price_container">
-                            <p>@s.ProductName</p>
-                            <p>@s.Price</p>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-shopping-cart me-2 text-primary"></i>Товары в корзине
+                                <span class="badge bg-primary ms-2">@Model.TotalQuantity шт.</span>
+                            </h4>
                         </div>
-                        <div class="quantity-selector mb-4">
-                            <label class="form-label fw-bold">Кількість:</label>
-                            <div class="input-group" style="width: 150px;">
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="decrementQuantity(@s.ProductId)">-</button>
-                    
-                                <input type="number" id="quantity-@s.ProductId"
-                                       class="form-control text-center"
-                                       value="@s.Count" min="1" max="99" readonly>
-                    
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="incrementQuantity(@s.ProductId)">+</button>
-                            </div>
+                        <div class="card-body p-0">
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="cart-item p-3 border-bottom">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" class="img-fluid rounded" style="max-height: 80px; object-fit: cover;">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6 class="fw-bold mb-1">@item.ProductName</h6>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <span class="fw-bold text-primary">@item.Price ₴</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="quantity-selector">
+                                                <div class="input-group input-group-sm" style="width: 120px;">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity(@item.ProductId)">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                    <input type="number" id="quantity-@item.ProductId"
+                                                           class="form-control text-center"
+                                                           value="@item.Count" min="1" max="99" readonly>
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity(@item.ProductId)">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteCartItem(@item.ProductId)">
+                                                <i class="fas fa-trash-alt"></i> Удалить
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
-                        <button class="delete_cart_btn" onclick="deleteCartItem(@s.ProductId)">Видалити</button>
                     </div>
                 </div>
-            }
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-receipt me-2 text-primary"></i>Итого
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="order-summary">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Товары (@Model.TotalQuantity шт.):</span>
+                                    <span class="fw-bold">@Model.TotalPrice ₴</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Доставка:</span>
+                                    @if (shippingCost == 0)
+                                    {
+                                        <span class="text-success">Бесплатно</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold">@shippingCost ₴</span>
+                                    }
+                                </div>
+                                @if (shippingCost > 0)
+                                {
+                                    <div class="alert alert-info py-2 mb-3">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <small>Добавьте товаров на сумму @(2000 - Model.TotalPrice) ₴ для бесплатной доставки</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-success py-2 mb-3">
+                                        <i class="fas fa-truck me-1"></i>
+                                        <small>Бесплатная доставка!</small>
+                                    </div>
+                                }
+                                <hr>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <span class="h5 fw-bold">Итого:</span>
+                                    <span class="h5 fw-bold text-primary">@totalWithShipping ₴</span>
+                                </div>
+                                <a href="@Url.Action("Checkout", "Order")" class="btn btn-primary w-100 btn-lg mb-3">
+                                    <i class="fas fa-credit-card me-2"></i>Оформить заказ
+                                </a>
+                                <a asp-controller="Catalog" asp-action="Index" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-arrow-left me-2"></i>Продолжить покупки
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
         else
         {
-            <div class="empty_cart_message_container">
-                <h1 class="empty_cart_message">Кошик порожній.</h1>
-                <br/>
-                <a asp-controller="Catalog" asp-action="Index" class="back_to_store_btn">
-                    За покупками ->
-                </a>
+            <div class="empty-cart text-center py-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <h3 class="text-muted mb-3">Корзина пуста</h3>
+                        <p class="text-muted mb-4">Добавьте товары в корзину, чтобы оформить заказ</p>
+                        <a asp-controller="Catalog" asp-action="Index" class="btn btn-primary btn-lg">
+                            <i class="fas fa-store me-2"></i>Перейти в каталог
+                        </a>
+                    </div>
+                </div>
             </div>
         }
     </div>
-    <div class="cart_total_info"></div>
-</div>
-<script>
-    function incrementQuantity(productId) {
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function incrementQuantity(productId) {
         const input = document.getElementById('quantity-' + productId);
         let value = parseInt(input.value);
         if (value < 99) {
-            value++;
-            input.value = value;
-            updateCartQuantity(productId, value);
+        value++;
+        input.value = value;
+        updateCartQuantity(productId, value);
         }
-    }
+        }
 
-    function decrementQuantity(productId) {
+        function decrementQuantity(productId) {
         const input = document.getElementById('quantity-' + productId);
         let value = parseInt(input.value);
         if (value > 1) {
-            value--;
-            input.value = value;
-            updateCartQuantity(productId, value);
+        value--;
+        input.value = value;
+        updateCartQuantity(productId, value);
         }
-    }
+        }
 
-    async function updateCartQuantity(productId, newCount) {
+        async function updateCartQuantity(productId, newCount) {
         try {
-            const response = await fetch('/Cart/UpdateQuantity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `productId=${productId}&count=${newCount}`
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                location.reload();
-            } else {
-                alert("Помилка: " + result.message);
-            }
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    }
-    async function deleteCartItem(productId) {
-        if (!confirm("Ви впевнені, що хочете видалити цей товар з кошика?")) {
-        return;
-        }
-        
-        try {
-        const response = await fetch('/Cart/RemoveFromCart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `productId=${productId}`
+        const response = await fetch('/Cart/UpdateQuantity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `productId=${productId}&count=${newCount}`
         });
 
         const result = await response.json();
-
         if (result.success) {
-            location.reload();
+        location.reload();
         } else {
-            alert("Помилка при видаленні: " + result.message);
+        Swal.fire('Ошибка', result.message, 'error');
         }
         } catch (error) {
-            console.error("Error:", error);
+        console.error("Error:", error);
+        Swal.fire('Ошибка', 'Не удалось обновить количество', 'error');
         }
-    }
-</script>
+        }
+
+        async function deleteCartItem(productId) {
+        const result = await Swal.fire({
+        title: 'Вы уверены?',
+        text: 'Товар будет удален из корзины',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Да, удалить',
+        cancelButtonText: 'Отмена'
+        });
+
+        if (result.isConfirmed) {
+        try {
+        const response = await fetch('/Cart/RemoveFromCart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `productId=${productId}`
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+        Swal.fire('Удалено!', 'Товар удален из корзины', 'success').then(() => {
+        location.reload();
+        });
+        } else {
+        Swal.fire('Ошибка', data.message, 'error');
+        }
+        } catch (error) {
+        console.error("Error:", error);
+        Swal.fire('Ошибка', 'Не удалось удалить товар', 'error');
+        }
+        }
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .cart-section .card {
+        border-radius: 16px;
+        overflow: hidden;
+        }
+        
+        .cart-section .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .cart-item {
+        transition: all 0.3s ease;
+        }
+        
+        .cart-item:hover {
+        background-color: #f8f9fa;
+        }
+        
+        .cart-item .input-group {
+        flex-wrap: nowrap;
+        }
+        
+        .cart-item .form-control {
+        border: 1px solid #e9ecef;
+        text-align: center;
+        }
+        
+        .btn-outline-secondary {
+        border-color: #dee2e6;
+        transition: all 0.3s ease;
+        }
+        
+        .btn-outline-secondary:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+        }
+        
+        .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-outline-danger:hover {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border-color: transparent;
+        color: white;
+        }
+        
+        .sticky-top {
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        }
+        
+        .breadcrumb {
+        background: transparent;
+        }
+        
+        .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+        color: #6c757d;
+        }
+        
+        .alert-info {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: none;
+        border-radius: 10px;
+        color: #1565c0;
+        }
+        
+        .alert-success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border: none;
+        border-radius: 10px;
+        color: #2e7d32;
+        }
+        
+        @@media (max-width: 768px) {
+        .cart-item .row > div {
+        margin-bottom: 10px;
+        text-align: center;
+        }
+            
+        .cart-item .col-md-2.text-end {
+        text-align: center !important;
+        }
+            
+        .quantity-selector {
+        display: flex;
+        justify-content: center;
+        }
+            
+        .sticky-top {
+        position: static;
+        margin-top: 20px;
+        }
+        }
+    </style>
+}

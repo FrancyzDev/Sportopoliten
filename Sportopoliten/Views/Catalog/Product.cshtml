@@ -6,11 +6,10 @@
     Layout = "_Layout";
 }
 
-<!-- Хлебные крошки -->
 <nav aria-label="breadcrumb" class="bg-light py-3">
     <div class="container">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Головна</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
             <li class="breadcrumb-item"><a asp-controller="Catalog" asp-action="Index">Каталог</a></li>
             <li class="breadcrumb-item"><a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@Model.CategoryId">@Model.CategoryName</a></li>
             <li class="breadcrumb-item active">@Model.Title</li>
@@ -18,11 +17,9 @@
     </div>
 </nav>
 
-<!-- Детали товара -->
 <section class="product-details py-5">
     <div class="container">
         <div class="row">
-            <!-- Галерея изображений -->
             <div class="col-md-6 mb-4">
                 <div class="product-gallery">
                     <div class="main-image mb-3">
@@ -45,7 +42,6 @@
                 </div>
             </div>
 
-            <!-- Информация о товаре -->
             <div class="col-md-6">
                 <h1 class="display-5 fw-bold mb-3">@Model.Title</h1>
                 
@@ -56,17 +52,16 @@
                 </div>
 
                 <div class="price mb-4">
-                    <span class="display-6 fw-bold text-primary">@Model.Price.ToString("C", new CultureInfo("uk-UA"))</span>
+                    <span class="display-6 fw-bold text-primary">@Model.Price</span>
                 </div>
 
                 <div class="description mb-4">
-                    <h5>Опис товару:</h5>
-                    <p class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Опис відсутній" : Model.Description)</p>
+                    <h5>Описание товара:</h5>
+                    <p class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Описание отсутствует" : Model.Description)</p>
                 </div>
 
-                <!-- Выбор размера -->
                 <div class="size-selector mb-4">
-                    <label class="form-label fw-bold">Розмір:</label>
+                    <label class="form-label fw-bold">Размер:</label>
                     <div class="d-flex gap-2 flex-wrap">
                         @foreach (var size in Model.AvailableSizes)
                         {
@@ -77,9 +72,8 @@
                     </div>
                 </div>
 
-                <!-- Количество -->
                 <div class="quantity-selector mb-4">
-                    <label class="form-label fw-bold">Кількість:</label>
+                    <label class="form-label fw-bold">Количество:</label>
                     <div class="input-group" style="width: 150px;">
                         <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity()">-</button>
                         <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="99">
@@ -87,27 +81,25 @@
                     </div>
                 </div>
 
-                <!-- Кнопки действий -->
                 <div class="actions">
                     <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart(@Model.Id)">
-                        <i class="fas fa-shopping-cart me-2"></i>Додати до кошика
+                        <i class="fas fa-shopping-cart me-2"></i>Добавить в корзину
                     </button>
                     <button class="btn btn-outline-secondary w-100" onclick="addToWishlist()">
-                        <i class="fas fa-heart me-2"></i>Додати до бажань
+                        <i class="fas fa-heart me-2"></i>Добавить в желания
                     </button>
                 </div>
 
-                <!-- Дополнительная информация -->
                 <div class="additional-info mt-4 pt-3 border-top">
                     <div class="row g-3">
                         <div class="col-6">
                             <small class="text-muted">
-                                <i class="fas fa-truck me-1"></i> Безкоштовна доставка від 1000₴
+                                <i class="fas fa-truck me-1"></i> Бесплатная доставка от 2000₴
                             </small>
                         </div>
                         <div class="col-6">
                             <small class="text-muted">
-                                <i class="fas fa-undo me-1"></i> Повернення 14 днів
+                                <i class="fas fa-undo me-1"></i> Возврат 14 дней
                             </small>
                         </div>
                     </div>
@@ -122,7 +114,6 @@
     <script>
         let selectedSize = null;
         
-        // Выбор размера
         document.querySelectorAll('.size-btn').forEach(btn => {
         btn.addEventListener('click', function() {
         document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -131,14 +122,13 @@
         });
         });
         
-        //Добавление в корзину
         async function addToCart(event) {
         if (typeof selectedSize === 'undefined' || !selectedSize) {
         Swal.fire({
         icon: 'warning',
-        title: 'Виберіть розмір',
-        text: 'Будь ласка, оберіть розмір товару',
-        confirmButtonText: 'Добре'
+        title: 'Выберите размер',
+        text: 'Пожалуйста, выберите размер товара',
+        confirmButtonText: 'Хорошо'
         });
         return;
         }
@@ -150,7 +140,7 @@
     
         if (button) {
         button.dataset.originalHtml = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Додається...';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавляется...';
         button.disabled = true;
         }
 
@@ -160,7 +150,7 @@
         params.append('count', quantity);
         params.append('size', selectedSize);
 
-        const response = await fetch('@Url.Action("AddToCart", "Catalog")', { 
+        const response = await fetch('@Url.Action("AddToCart", "Catalog")', {
         method: 'POST',
         headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -173,7 +163,7 @@
         if (result.success) {
         Swal.fire({
         icon: 'success',
-        title: 'Додано!',
+        title: 'Добавлено!',
         text: `@Html.Raw(Model.Title) (${selectedSize}) - ${quantity} шт.`,
         toast: true,
         position: 'top-end',
@@ -185,31 +175,30 @@
         if (typeof updateCartCounter === "function") updateCartCounter();
 
         if (button) {
-        button.innerHTML = '<i class="fas fa-check me-2"></i>Додано!';
+        button.innerHTML = '<i class="fas fa-check me-2"></i>Добавлено!';
         setTimeout(() => {
         button.innerHTML = button.dataset.originalHtml;
         button.disabled = false;
         }, 1500);
         }
         } else {
-        Swal.fire('Помилка', result.message, 'error');
+        Swal.fire('Ошибка', result.message, 'error');
         resetButton(button);
         }
         } catch (error) {
         console.error('Error:', error);
-        Swal.fire('Помилка', 'Не вдалося додати товар до кошика', 'error');
+        Swal.fire('Ошибка', 'Не удалось добавить товар в корзину', 'error');
         resetButton(button);
         }
         }
 
         function resetButton(button) {
         if (button) {
-        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Додати до кошика';
+        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Добавить в корзину';
         button.disabled = false;
         }
         }
         
-        // Простое добавление для похожих товаров
         async function addToCartSimple(productId) {
         try {
         const response = await fetch('@Url.Action("AddToCart", "Cart")', {
@@ -226,7 +215,7 @@
         if (result.success) {
         Swal.fire({
         icon: 'success',
-        title: 'Додано!',
+        title: 'Добавлено!',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -239,7 +228,6 @@
         }
         }
         
-        // Функции для количества
         function decrementQuantity() {
         let qty = parseInt(document.getElementById('quantity').value);
         if (qty > 1) {
@@ -254,12 +242,10 @@
         }
         }
         
-        // Смена главного изображения
         function changeMainImage(src) {
         document.getElementById('mainImage').src = src;
         }
         
-        // Обновление счетчика корзины
         async function updateCartCounter() {
         try {
         const response = await fetch('@Url.Action("GetCartCount", "Cart")');
@@ -281,8 +267,8 @@
         function addToWishlist() {
         Swal.fire({
         icon: 'info',
-        title: 'Скоро буде доступно',
-        text: 'Функція списку бажань з\'явиться найближчим часом',
+        title: 'Скоро будет доступно',
+        text: 'Функция списка желаний появится в ближайшее время',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,

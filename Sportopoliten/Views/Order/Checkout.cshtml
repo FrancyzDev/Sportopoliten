@@ -1,0 +1,269 @@
+﻿@model Sportopoliten.BLL.DTO.Cart.CartDTO
+@{
+    ViewData["Title"] = "Оформление заказа";
+    Layout = "_Layout";
+    
+    decimal shippingCost = Model.TotalPrice >= 2000 ? 0 : 120;
+    decimal totalWithShipping = Model.TotalPrice + shippingCost;
+}
+
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Cart" asp-action="Index">Корзина</a></li>
+            <li class="breadcrumb-item active">Оформление заказа</li>
+        </ol>
+    </div>
+</nav>
+
+<section class="checkout-section py-5">
+    <div class="container">
+        <form id="checkoutForm" method="post" asp-action="CreateOrder" asp-controller="Order">
+            @Html.AntiForgeryToken()
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-user me-2 text-primary"></i>Контактная информация
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">ФИО</label>
+                                    <input type="text" class="form-control" name="FullName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Телефон</label>
+                                    <input type="tel" class="form-control" name="Phone"
+                                           placeholder="+38 0XX XXX XX XX" required>
+                                    <small class="text-muted">Формат: +38 0XX XXX XX XX</small>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" class="form-control" name="Email" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-map-marker-alt me-2 text-primary"></i>Адрес доставки
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Город</label>
+                                    <input type="text" class="form-control" name="City" required>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Адрес</label>
+                                    <input type="text" class="form-control" name="Address" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Индекс</label>
+                                    <input type="text" class="form-control" name="PostalCode">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Страна</label>
+                                    <input type="text" class="form-control" name="Country" value="Украина" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-truck me-2 text-primary"></i>Способ доставки
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="delivery-options">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="DeliveryMethod" id="delivery1" value="nova_poshta" checked>
+                                    <label class="form-check-label" for="delivery1">
+                                        <strong>Новая Почта</strong>
+                                        <p class="text-muted small mb-0">Доставка в отделение Новой Почты</p>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="DeliveryMethod" id="delivery2" value="ukr_poshta">
+                                    <label class="form-check-label" for="delivery2">
+                                        <strong>Укрпочта</strong>
+                                        <p class="text-muted small mb-0">Доставка в отделение Укрпочты</p>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="DeliveryMethod" id="delivery3" value="courier">
+                                    <label class="form-check-label" for="delivery3">
+                                        <strong>Курьерская доставка</strong>
+                                        <p class="text-muted small mb-0">Доставка курьером по адресу</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-credit-card me-2 text-primary"></i>Способ оплаты
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="payment-options">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="payment1" value="card" checked>
+                                    <label class="form-check-label" for="payment1">
+                                        <strong>Оплата картой онлайн</strong>
+                                        <p class="text-muted small mb-0">Visa, Mastercard, Приват24</p>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="payment2" value="cash">
+                                    <label class="form-check-label" for="payment2">
+                                        <strong>Наложенный платеж</strong>
+                                        <p class="text-muted small mb-0">Оплата при получении в отделении</p>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="payment3" value="privat24">
+                                    <label class="form-check-label" for="payment3">
+                                        <strong>Приват24</strong>
+                                        <p class="text-muted small mb-0">Оплата через Приват24</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-comment me-2 text-primary"></i>Комментарий к заказу
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control" name="Comment" rows="3" placeholder="Дополнительная информация по заказу..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-shopping-bag me-2 text-primary"></i>Ваш заказ
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Items != null && Model.Items.Any())
+                            {
+                                <div class="order-items mb-3" style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="@item.ImageUrl" alt="@item.ProductName" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                                <div class="ms-2">
+                                                    <p class="mb-0 small fw-bold">@item.ProductName</p>
+                                                    <p class="mb-0 text-muted small">x @item.Count</p>
+                                                </div>
+                                            </div>
+                                            <span class="fw-bold">@item.Price ₴</span>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="order-total">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Товары (@Model.TotalQuantity шт.):</span>
+                                        <span>@Model.TotalPrice ₴</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Доставка:</span>
+                                        @if (shippingCost == 0)
+                                        {
+                                            <span class="text-success">Бесплатно</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold">@shippingCost ₴</span>
+                                        }
+                                    </div>
+                                    @if (shippingCost > 0)
+                                    {
+                                        <div class="alert alert-info py-2 mb-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            <small>Добавьте товаров на сумму @(2000 - Model.TotalPrice) ₴ для бесплатной доставки</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-success py-2 mb-2">
+                                            <i class="fas fa-truck me-1"></i>
+                                            <small>Бесплатная доставка!</small>
+                                        </div>
+                                    }
+                                    <hr>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="fw-bold h5 mb-0">Итого:</span>
+                                        <span class="fw-bold h5 mb-0 text-primary">@totalWithShipping ₴</span>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>Подтвердить заказ
+                                </button>
+                                
+                                <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary w-100 mt-3">
+                                    <i class="fas fa-arrow-left me-2"></i>Вернуться в корзину
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Корзина пуста</p>
+                                    <a asp-controller="Catalog" asp-action="Index" class="btn btn-primary">
+                                        Перейти в каталог
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+    // Клиентская валидация телефона
+    const phoneInput = document.querySelector('input[name="Phone"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 12) value = value.slice(0, 12);
+            if (value.startsWith('380')) {
+                value = '+' + value;
+            }
+            e.target.value = value;
+        });
+    }
+</script>

@@ -12,6 +12,8 @@ namespace Sportopoliten.BLL.Interfaces
         Task<UserDTO?> GetUserByEmailAsync(string email);
         Task<UserDTO?> GetUserByLoginAsync(string login);
         Task DeleteUserAsync(int id);
+        Task UpdateUserProfileAsync(int userId, EditProfileDTO model);
+        Task ChangePasswordAsync(int userId, string oldPassword, string newPassword);
         Task<IEnumerable<UserDTO>> GetAllUsersAsync();
         Task<bool> IsEmailUniqueAsync(string email);
         Task<bool> IsLoginUniqueAsync(string login);

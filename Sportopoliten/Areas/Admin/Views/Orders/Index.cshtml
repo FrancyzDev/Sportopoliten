@@ -1,0 +1,230 @@
+﻿@using Sportopoliten.DAL.Entities
+@model IEnumerable<Sportopoliten.DAL.Entities.Order>
+
+@{
+    ViewData["Title"] = "Управление заказами";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Номер заказа</th>
+                        <th>Покупатель</th>
+                        <th>Телефон</th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
+                        <th>Дата заказа</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>#@order.Id</td>
+                            <td>@order.FullName</td>
+                            <td>@order.Phone</td>
+                            <td>@order.TotalAmount ₴</td>
+                            <td>
+                                <span class="status-badge status-@order.Status.ToString().ToLower()">
+                                    @GetStatusText(order.Status)
+                                </span>
+                            </td>
+                            <td>@order.OrderDate.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info" title="Детали">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-warning" title="Изменить статус" data-bs-toggle="modal" data-bs-target="#statusModal"
+                                            data-id="@order.Id" data-status="@order.Status">
+                                        <i class="fas fa-truck"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" title="Удалить" onclick="confirmDelete(@order.Id, '#@order.Id')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для изменения статуса -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Изменение статуса заказа</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="statusForm" method="post" asp-action="UpdateStatus" asp-controller="Orders" asp-area="Admin">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="statusOrderId" />
+                    <div class="mb-3">
+                        <label class="form-label">Выберите статус</label>
+                        <select name="status" class="form-select" id="orderStatus">
+                            <option value="Pending">Ожидает обработки</option>
+                            <option value="Processing">В обработке</option>
+                            <option value="Shipped">Отправлен</option>
+                            <option value="Delivered">Доставлен</option>
+                            <option value="Cancelled">Отменен</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для подтверждения удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить заказ <strong id="deleteOrderNumber"></strong>?</p>
+                <p class="text-danger">Это действие невозможно отменить!</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" asp-action="Delete" asp-controller="Orders" asp-area="Admin">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteOrderId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusText(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "Ожидает обработки",
+            OrderStatus.Processing => "В обработке",
+            OrderStatus.Shipped => "Отправлен",
+            OrderStatus.Delivered => "Доставлен",
+            OrderStatus.Cancelled => "Отменен",
+            _ => status.ToString()
+        };
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+
+    <script>
+        // Настройка модального окна статуса
+        const statusModal = document.getElementById('statusModal');
+        if (statusModal) {
+        statusModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const orderId = button.getAttribute('data-id');
+        const currentStatus = button.getAttribute('data-status');
+                
+        const orderIdInput = document.getElementById('statusOrderId');
+        const statusSelect = document.getElementById('orderStatus');
+                
+        if (orderIdInput) orderIdInput.value = orderId;
+        if (statusSelect) statusSelect.value = currentStatus;
+        });
+        }
+
+        // Подтверждение удаления
+        function confirmDelete(id, orderNumber) {
+        document.getElementById('deleteOrderNumber').textContent = orderNumber;
+        document.getElementById('deleteOrderId').value = id;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+        }
+
+        // Инициализация DataTable
+        $(document).ready(function() {
+        $('#ordersTable').DataTable({
+        language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/ru.json'
+        },
+        pageLength: 25,
+        order: [[0, 'desc']]
+        });
+        });
+    </script>
+
+    <style>
+        .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        }
+        
+        .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        }
+        
+        .status-processing {
+        background-color: #cce5ff;
+        color: #004085;
+        }
+        
+        .status-shipped {
+        background-color: #d4edda;
+        color: #155724;
+        }
+        
+        .status-delivered {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        }
+        
+        .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+        }
+        
+        .btn-group .btn {
+        margin: 0 2px;
+        }
+    </style>
+}

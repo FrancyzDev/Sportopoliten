@@ -1,0 +1,299 @@
+﻿@model IEnumerable<Sportopoliten.DAL.Entities.Order>
+@{
+    ViewData["Title"] = "Мои заказы";
+    Layout = "_Layout";
+}
+
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="Index">Личный кабинет</a></li>
+            <li class="breadcrumb-item active">Мои заказы</li>
+        </ol>
+    </div>
+</nav>
+
+<section class="orders-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="profile-sidebar card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar mb-3">
+                            <div class="avatar-circle mx-auto">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        </div>
+                        <h5 class="mb-1">@User.FindFirst("FullName")?.Value</h5>
+                        <p class="text-muted small">@User.Identity?.Name</p>
+                        <hr>
+                        <div class="list-group list-group-flush">
+                            <a href="@Url.Action("Index", "Account")" class="list-group-item list-group-item-action">
+                                <i class="fas fa-id-card me-2"></i>Мой профиль
+                            </a>
+                            <a href="@Url.Action("Orders", "Account")" class="list-group-item list-group-item-action active">
+                                <i class="fas fa-box me-2"></i>Мои заказы
+                            </a>
+                            <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="list-group-item list-group-item-action text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="orders-content">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-shopping-bag me-2 text-primary"></i>Мои заказы
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Model != null && Model.Any())
+                            {
+                                <div class="orders-list">
+                                    @foreach (var order in Model)
+                                    {
+                                        <div class="order-card card mb-3 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-3">
+                                                        <div class="order-number">
+                                                            <small class="text-muted text-uppercase">Номер заказа</small>
+                                                            <p class="fw-bold mb-0">#@order.Id</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="order-date">
+                                                            <small class="text-muted text-uppercase">Дата заказа</small>
+                                                            <p class="fw-bold mb-0">@order.OrderDate.ToString("dd.MM.yyyy")</p>
+                                                            <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="order-total">
+                                                            <small class="text-muted text-uppercase">Сумма</small>
+                                                            <p class="fw-bold text-primary mb-0">@order.TotalAmount ₴</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="order-status">
+                                                            <small class="text-muted text-uppercase">Статус</small>
+                                                            @{
+                                                                var statusClass = order.Status.ToString().ToLower();
+                                                                var statusText = order.Status switch
+                                                                {
+                                                                    Sportopoliten.DAL.Entities.OrderStatus.Pending => "Ожидает обработки",
+                                                                    Sportopoliten.DAL.Entities.OrderStatus.Processing => "В обработке",
+                                                                    Sportopoliten.DAL.Entities.OrderStatus.Shipped => "Отправлен",
+                                                                    Sportopoliten.DAL.Entities.OrderStatus.Delivered => "Доставлен",
+                                                                    Sportopoliten.DAL.Entities.OrderStatus.Cancelled => "Отменен",
+                                                                    _ => order.Status.ToString()
+                                                                };
+                                                            }
+                                                            <span class="status-badge status-@statusClass">
+                                                                @statusText
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2 text-end">
+                                                        <a href="@Url.Action("OrderDetails", "Order", new { id = order.Id })" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>Детали
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                @if (order.OrderItems != null && order.OrderItems.Any())
+                                                {
+                                                    <hr class="my-3">
+                                                    <div class="order-items-preview">
+                                                        <small class="text-muted">Товары:</small>
+                                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                                            @foreach (var item in order.OrderItems.Take(3))
+                                                            {
+                                                                <span class="badge bg-light text-dark">
+                                                                    @item.ProductName x @item.Count
+                                                                </span>
+                                                            }
+                                                            @if (order.OrderItems.Count() > 3)
+                                                            {
+                                                                <span class="badge bg-light text-dark">
+                                                                    + еще @(order.OrderItems.Count() - 3)
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-orders text-center py-5">
+                                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted mb-3">У вас пока нет заказов</h4>
+                                    <p class="text-muted mb-4">Перейдите в каталог, чтобы сделать первый заказ</p>
+                                    <a asp-controller="Catalog" asp-action="Index" class="btn btn-primary">
+                                        <i class="fas fa-store me-2"></i>Перейти в каталог
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Styles {
+    <style>
+        .profile-sidebar {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .list-group-item {
+            border: none;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+            .list-group-item:hover {
+                transform: translateX(5px);
+            }
+        
+            .list-group-item.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-color: transparent;
+                color: white;
+            }
+        
+                .list-group-item.active i {
+                    color: white;
+                }
+        
+        .order-card {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+            .order-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+            }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-shipped {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-delivered {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .card {
+            border-radius: 16px;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 16px 16px 0 0 !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+        
+        .btn-outline-primary {
+            border-color: #667eea;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        
+            .btn-outline-primary:hover {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-color: transparent;
+                color: white;
+                transform: translateY(-2px);
+            }
+        
+        .breadcrumb {
+            background: transparent;
+        }
+        
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+        
+        .order-items-preview .badge {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+        }
+        
+        @@media (max-width: 768px) {
+            .order-card .row > div {
+                margin-bottom: 10px;
+                text-align: center;
+            }
+            
+            .order-card .col-md-2.text-end {
+                text-align: center !important;
+            }
+        }
+    </style>
+}

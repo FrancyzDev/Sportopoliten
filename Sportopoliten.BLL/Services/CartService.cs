@@ -58,6 +58,27 @@ namespace Sportopoliten.BLL.Services
             };
         }
 
+        public async Task<int> GetCartItemCountAsync(int userId)
+        {
+            try
+            {
+                // Получаем корзину пользователя
+                var cart = await GetCartAsync(userId);
+
+                if (cart == null || cart.Items == null)
+                    return 0;
+
+                // Суммируем количество всех товаров в корзине
+                return cart.Items.Sum(item => item.Count);
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки
+                Console.WriteLine($"Error getting cart item count: {ex.Message}");
+                return 0;
+            }
+        }
+
         public async Task AddToCartAsync(int userId, int productId, int count)
         {
             var product = await Database.Products.GetByIdAsync(productId);
@@ -161,8 +182,15 @@ namespace Sportopoliten.BLL.Services
 
             if (cart != null)
             {
-                Database.Carts.Delete(cart);
-                await Database.SaveChangesAsync();
+                var cartItems = await Database.CartItems.FindAsync(ci => ci.CartId == cart.Id);
+                if (cartItems != null && cartItems.Any())
+                {
+                    foreach (var item in cartItems.ToList())
+                    {
+                        Database.CartItems.Delete(item);
+                    }
+                    await Database.SaveChangesAsync();
+                }
             }
         }
 

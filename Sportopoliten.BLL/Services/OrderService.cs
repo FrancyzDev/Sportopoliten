@@ -42,83 +42,72 @@ namespace Sportopoliten.BLL.Services
         // Создать новый заказ
         public async Task<Order> CreateOrderAsync(CreateOrderDTO dto)
         {
-            // Начинаем транзакцию
             using var transaction = await Database.BeginTransactionAsync();
 
             try
             {
-                // Проверяем существование пользователя
                 var user = await Database.Users.GetByIdAsync(dto.UserId);
                 if (user == null)
                     throw new KeyNotFoundException($"Пользователь с ID {dto.UserId} не найден");
 
-                //ОПТИМИЗАЦИЯ: Загружаем все нужные товары ОДНИМ запросом
                 var productIds = dto.Items.Select(i => i.ProductId).ToList();
                 var products = (await Database.Products.GetWithQueryAsync(q =>
                     q.Where(p => productIds.Contains(p.Id))
                 )).ToList();
 
-                // Создаем заказ
+                // Формируем полный адрес доставки
+                var fullShippingAddress = $"{dto.City}, {dto.Address}, {dto.PostalCode}, {dto.Country}";
+
                 var order = new Order
                 {
                     UserId = dto.UserId,
                     OrderDate = DateTime.UtcNow,
                     Status = OrderStatus.Pending,
-                    TotalAmount = 0, // Будет пересчитано
+                    TotalAmount = 0,
+                    ShippingAddress = fullShippingAddress,
+                    PaymentMethod = dto.PaymentMethod,
+                    FullName = dto.FullName,
+                    Phone = dto.Phone,
+                    Email = dto.Email,
+                    Comment = dto.Comment,
                     OrderItems = new List<OrderItem>()
                 };
 
                 decimal totalAmount = 0;
 
-                // Добавляем товары в заказ
                 foreach (var itemDto in dto.Items)
                 {
-                    // Проверяем существование товара
                     var product = products.FirstOrDefault(p => p.Id == itemDto.ProductId);
                     if (product == null)
                         throw new KeyNotFoundException($"Товар с ID {itemDto.ProductId} не найден");
 
-                    //// Проверяем наличие на складе
-                    //if (product.StockQuantity < itemDto.Count)
-                    //    throw new InvalidOperationException($"Недостаточно товара '{product.Title}' (в наличии: {product.StockQuantity})");
-                    //// ОБНОВЛЯЕМ ОСТАТОК
-                    //product.StockQuantity -= itemDto.Count;
-
-                    // Создаем позицию заказа
                     var orderItem = new OrderItem
                     {
                         ProductId = itemDto.ProductId,
-                        //Product = product,
+                        ProductName = product.Title,
                         Count = itemDto.Count,
-                        PriceAtPurchase = product.Price, // Цена на момент заказа
+                        PriceAtPurchase = product.Price,
                         Subtotal = product.Price * itemDto.Count
                     };
 
                     order.OrderItems.Add(orderItem);
                     totalAmount += orderItem.Subtotal;
-
-                    Database.Products.Update(product);
                 }
 
                 order.TotalAmount = totalAmount;
 
-                // Сохраняем заказ
                 await Database.Orders.AddAsync(order);
                 await Database.SaveChangesAsync();
-
-                // Подтверждаем транзакцию
                 await transaction.CommitAsync();
 
                 return order;
             }
             catch
             {
-                // Откатываем транзакцию в случае ошибки
                 await transaction.RollbackAsync();
                 throw;
             }
         }
-        // Получить заказы пользователя
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId)
         {
             return await Database.Orders.GetWithQueryAsync(query => query
@@ -148,6 +137,27 @@ namespace Sportopoliten.BLL.Services
                 throw new KeyNotFoundException($"Заказ с ID {id} не найден");
 
             order.Status = status;
+            await Database.SaveChangesAsync();
+        }
+
+        public async Task DeleteOrderAsync(int id)
+        {
+            var order = await Database.Orders.GetSingleWithQueryAsync(query => query
+                .Include(o => o.OrderItems)
+                .Where(o => o.Id == id)
+            );
+
+            if (order == null)
+                throw new KeyNotFoundException($"Заказ с ID {id} не найден");
+
+            // Удаляем все позиции заказа
+            foreach (var item in order.OrderItems.ToList())
+            {
+                Database.OrderItems.Delete(item);
+            }
+
+            // Удаляем сам заказ
+            Database.Orders.Delete(order);
             await Database.SaveChangesAsync();
         }
     }

@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Sportopoliten.BLL.Interfaces;
 using Sportopoliten.BLL.Services;
+using Sportopoliten.DAL.Data;
 using Sportopoliten.DAL.Interfaces;
 using Sportopoliten.DAL.Repositories;
 using Sportopoliten.Extensions;
@@ -15,6 +17,8 @@ namespace Sportopoliten
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddDbContext<ShopDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
@@ -29,12 +33,6 @@ namespace Sportopoliten
             cultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
-            builder.Services.Configure<RequestLocalizationOptions>(options =>
-            {
-                options.DefaultRequestCulture = new RequestCulture(cultureInfo);
-                options.SupportedCultures = new[] { cultureInfo };
-                options.SupportedUICultures = new[] { cultureInfo };
-            });
 
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

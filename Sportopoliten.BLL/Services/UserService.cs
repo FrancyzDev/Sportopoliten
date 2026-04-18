@@ -137,6 +137,19 @@ namespace Sportopoliten.BLL.Services
             await Database.SaveChangesAsync();
         }
 
+        public async Task UpdateUserProfileAsync(int userId, EditProfileDTO model)
+        {
+            var user = await Database.Users.GetByIdAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException("Пользователь не найден");
+
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.Phone = model.Phone;
+
+            Database.Users.Update(user);
+            await Database.SaveChangesAsync();
+        }
         public async Task DeleteUserAsync(int id)
         {
             var user = await Database.Users.GetSingleWithQueryAsync(query => query

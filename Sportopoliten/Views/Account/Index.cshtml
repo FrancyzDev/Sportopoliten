@@ -1,0 +1,187 @@
+﻿@model Sportopoliten.ViewModels.AccountViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Личный кабинет";
+    Layout = "_Layout";
+}
+
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+            <li class="breadcrumb-item active">Личный кабинет</li>
+        </ol>
+    </div>
+</nav>
+
+<section class="profile-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="profile-sidebar card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar mb-3">
+                            <div class="avatar-circle mx-auto">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        </div>
+                        <h5 class="mb-1">@Model.FullName</h5>
+                        <p class="text-muted small">@Model.Login</p>
+                        <hr>
+                        <div class="list-group list-group-flush">
+                            <a href="@Url.Action("Index", "Account")" class="list-group-item list-group-item-action active">
+                                <i class="fas fa-id-card me-2"></i>Мой профиль
+                            </a>
+                            <a href="@Url.Action("Orders", "Account")" class="list-group-item list-group-item-action">
+                                <i class="fas fa-box me-2"></i>Мои заказы
+                            </a>
+                            <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="list-group-item list-group-item-action text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="profile-content">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="mb-0">Информация о пользователе</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small text-uppercase">ФИО</label>
+                                        <p class="fw-bold mb-0">@Model.FullName</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small text-uppercase">Email</label>
+                                        <p class="fw-bold mb-0">@Model.Email</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small text-uppercase">Логин</label>
+                                        <p class="fw-bold mb-0">@Model.Login</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small text-uppercase">Телефон</label>
+                                        <p class="fw-bold mb-0">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Не указан" : Model.PhoneNumber)</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small text-uppercase">Дата регистрации</label>
+                                        <p class="fw-bold mb-0">@Model.RegisteredAt.ToString("dd.MM.yyyy")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="@Url.Action("EditProfile", "Account")" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Редактировать профиль
+                            </a>
+                            <a href="@Url.Action("ChangePassword", "Account")" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-key me-2"></i>Сменить пароль
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Styles {
+    <style>
+        .profile-sidebar {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .list-group-item {
+            border: none;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+            .list-group-item:hover {
+                transform: translateX(5px);
+            }
+        
+            .list-group-item.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-color: transparent;
+                color: white;
+            }
+        
+                .list-group-item.active i {
+                    color: white;
+                }
+        
+        .info-item label {
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .card {
+            border-radius: 16px;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 16px 16px 0 0 !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+        
+        .btn-outline-secondary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .breadcrumb {
+            background: transparent;
+        }
+        
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+    </style>
+}

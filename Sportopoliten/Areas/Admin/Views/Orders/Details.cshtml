@@ -1,0 +1,310 @@
+﻿@using Sportopoliten.DAL.Entities
+@model Sportopoliten.DAL.Entities.Order
+
+@{
+    ViewData["Title"] = $"Детали заказа #{Model.Id}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Детали заказа #@Model.Id</h1>
+    <div>
+        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Назад к списку
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2 text-primary"></i>Информация о покупателе
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">ФИО</label>
+                    <p class="fw-bold mb-0">@Model.FullName</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Телефон</label>
+                    <p class="fw-bold mb-0">@Model.Phone</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Email</label>
+                    <p class="fw-bold mb-0">@Model.Email</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">ID пользователя</label>
+                    <p class="fw-bold mb-0">@Model.UserId</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Информация о заказе
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Номер заказа</label>
+                    <p class="fw-bold mb-0">#@Model.Id</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Дата заказа</label>
+                    <p class="fw-bold mb-0">@Model.OrderDate.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Статус</label>
+                    <div>
+                        <span class="status-badge status-@Model.Status.ToString().ToLower()">
+                            @GetStatusText(Model.Status)
+                        </span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Способ оплаты</label>
+                    <p class="fw-bold mb-0">@GetPaymentMethodText(Model.PaymentMethod)</p>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small text-uppercase">Сумма заказа</label>
+                    <p class="fw-bold text-primary h4 mb-0">@Model.TotalAmount ₴</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>Адрес доставки
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">@Model.ShippingAddress</p>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Comment))
+    {
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comment me-2 text-primary"></i>Комментарий к заказу
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.Comment</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-boxes me-2 text-primary"></i>Товары в заказе
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Изображение</th>
+                                <th>Товар</th>
+                                <th class="text-center">Количество</th>
+                                <th class="text-end">Цена</th>
+                                <th class="text-end">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td style="width: 80px;">
+                                        @if (item.Product != null && item.Product.ProductImages != null && item.Product.ProductImages.Any())
+                                        {
+                                            <img src="@item.Product.ProductImages.First().ImageUrl" alt="@item.ProductName" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                <i class="fas fa-image text-muted fa-2x"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@item.ProductName</strong>
+                                        @if (item.Product != null)
+                                        {
+                                            <div>
+                                                <small class="text-muted">Артикул: @item.ProductId</small>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-center align-middle">@item.Count шт.</td>
+                                    <td class="text-end align-middle">@item.PriceAtPurchase ₴</td>
+                                    <td class="text-end align-middle">
+                                        <strong>@item.Subtotal ₴</strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">Итого:</td>
+                                <td class="text-end fw-bold text-primary h5">@Model.TotalAmount ₴</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-truck me-2 text-primary"></i>Изменить статус заказа
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="UpdateStatus" asp-controller="Orders" asp-area="Admin">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="row align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Новый статус</label>
+                            <select name="status" class="form-select">
+                                <option value="Pending" selected="@(Model.Status == OrderStatus.Pending)">Ожидает обработки</option>
+                                <option value="Processing" selected="@(Model.Status == OrderStatus.Processing)">В обработке</option>
+                                <option value="Shipped" selected="@(Model.Status == OrderStatus.Shipped)">Отправлен</option>
+                                <option value="Delivered" selected="@(Model.Status == OrderStatus.Delivered)">Доставлен</option>
+                                <option value="Cancelled" selected="@(Model.Status == OrderStatus.Cancelled)">Отменен</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i>Обновить статус
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusText(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "Ожидает обработки",
+            OrderStatus.Processing => "В обработке",
+            OrderStatus.Shipped => "Отправлен",
+            OrderStatus.Delivered => "Доставлен",
+            OrderStatus.Cancelled => "Отменен",
+            _ => status.ToString()
+        };
+    }
+
+    string GetPaymentMethodText(string paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            "card" => "Оплата картой онлайн",
+            "cash" => "Наложенный платеж",
+            "privat24" => "Приват24",
+            _ => paymentMethod ?? "Не указан"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-shipped {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-delivered {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .table > :not(caption) > * > * {
+            padding: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+    </style>
+}

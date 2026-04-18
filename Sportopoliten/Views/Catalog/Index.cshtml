@@ -3,32 +3,30 @@
 @using Sportopoliten.ViewModels.CatalogViewModels
 
 @{
-    ViewData["Title"] = "Каталог товарів";
+    ViewData["Title"] = "Каталог товаров";
     Layout = "_Layout";
 }
 
-<!-- Хлебные крошки -->
 <nav aria-label="breadcrumb" class="bg-light py-3">
     <div class="container">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Головна</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
             <li class="breadcrumb-item active">Каталог</li>
         </ol>
     </div>
 </nav>
 
-<!-- Заголовок -->
 <section class="page-header py-4">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h1 class="display-5 fw-bold mb-0">Каталог товарів</h1>
-                <p class="text-muted mt-2">Знайдено @Model.TotalItems товарів</p>
+                <h1 class="display-5 fw-bold mb-0">Каталог товаров</h1>
+                <p class="text-muted mt-2">Найдено @Model.TotalItems товаров</p>
             </div>
             <div class="col-md-6">
                 <form asp-action="Index" method="get" class="search-form">
                     <div class="input-group">
-                        <input type="text" name="searchTerm" class="form-control" placeholder="Пошук товарів..." value="@Model.SearchTerm">
+                        <input type="text" name="searchTerm" class="form-control" placeholder="Поиск товаров..." value="@Model.SearchTerm">
                         <button class="btn btn-primary" type="submit">
                             <i class="fas fa-search"></i>
                         </button>
@@ -39,33 +37,29 @@
     </div>
 </section>
 
-<!-- Основной контент -->
 <section class="catalog-content py-4">
     <div class="container">
         <div class="row">
-            <!-- Фильтры (левая колонка) -->
             <div class="col-lg-3 mb-4">
                 <div class="filters-card card shadow-sm">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-filter me-2 text-primary"></i>Фільтри
+                            <i class="fas fa-filter me-2 text-primary"></i>Фильтры
                         </h5>
                     </div>
                     <div class="card-body">
                         <form asp-action="Index" method="get" id="filterForm">
-                            <!-- Сохраняем текущие параметры -->
                             <input type="hidden" name="page" value="1" />
                             <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
                             
-                            <!-- Фильтр по категориям -->
                             <div class="filter-section mb-4">
-                                <h6 class="fw-bold mb-3">Категорії</h6>
+                                <h6 class="fw-bold mb-3">Категории</h6>
                                 <div class="category-list">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio" name="categoryId" 
                                                id="catAll" value="" @(Model.SelectedCategoryId == null ? "checked" : "")>
                                         <label class="form-check-label" for="catAll">
-                                            <span>Всі категорії</span>
+                                            <span>Все категории</span>
                                             <span class="badge bg-light text-dark">@Model.Categories.Sum(c => c.ProductCount)</span>
                                         </label>
                                     </div>
@@ -84,16 +78,15 @@
                                 </div>
                             </div>
 
-                            <!-- Фильтр по цене -->
                             <div class="filter-section mb-4">
-                                <h6 class="fw-bold mb-3">Ціна</h6>
+                                <h6 class="fw-bold mb-3">Цена</h6>
                                 <div class="price-range">
                                     <div class="row g-2">
                                         <div class="col-6">
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text">₴</span>
                                                 <input type="number" name="minPrice" class="form-control" 
-                                                       placeholder="Від" value="@Model.MinPrice" 
+                                                       placeholder="От" value="@Model.MinPrice" 
                                                        min="@Model.PriceRangeMin" max="@Model.PriceRangeMax">
                                             </div>
                                         </div>
@@ -109,34 +102,32 @@
                                 </div>
                             </div>
 
-                            <!-- Сортировка -->
                             <div class="filter-section mb-4">
-                                <h6 class="fw-bold mb-3">Сортування</h6>
+                                <h6 class="fw-bold mb-3">Сортировка</h6>
                                 <select name="sortBy" class="form-select">
                                     @{
                                         var currentSortBy = Model.SortBy ?? "";
                                     }
                                     <option value="newest" selected="@(currentSortBy == "newest")">Новинки</option>
-                                    <option value="price_asc" selected="@(currentSortBy == "price_asc")">Ціна (від дешевих)</option>
-                                    <option value="price_desc" selected="@(currentSortBy == "price_desc")">Ціна (від дорогих)</option>
-                                    <option value="name_asc" selected="@(currentSortBy == "name_asc")">Назва (А-Я)</option>
-                                    <option value="name_desc" selected="@(currentSortBy == "name_desc")">Назва (Я-А)</option>
+                                    <option value="price_asc" selected="@(currentSortBy == "price_asc")">Цена (от дешевых)</option>
+                                    <option value="price_desc" selected="@(currentSortBy == "price_desc")">Цена (от дорогих)</option>
+                                    <option value="name_asc" selected="@(currentSortBy == "name_asc")">Название (А-Я)</option>
+                                    <option value="name_desc" selected="@(currentSortBy == "name_desc")">Название (Я-А)</option>
                                 </select>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-search me-2"></i>Застосувати
+                                <i class="fas fa-search me-2"></i>Применить
                             </button>
                             
                             <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
-                                <i class="fas fa-times me-2"></i>Скинути
+                                <i class="fas fa-times me-2"></i>Сбросить
                             </a>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Товары (правая колонка) -->
             <div class="col-lg-9">
                 @if (Model.Items.Any())
                 {
@@ -153,7 +144,7 @@
                                             <p class="text-muted small mb-1">@product.CategoryName</p>
                                             <h6 class="card-title text-dark fw-bold mb-2">@product.Title</h6>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="text-primary fw-bold h5 mb-0">@product.Price.ToString("C", new CultureInfo("uk-UA"))</span>
+                                                <span class="text-primary fw-bold h5 mb-0">@product.Price</span>
                                                 <button class="btn btn-sm btn-primary rounded-circle add-to-cart" 
                                                         onclick="addToCart(@product.Id, event)">
                                                     <i class="fas fa-shopping-cart"></i>
@@ -166,7 +157,6 @@
                         }
                     </div>
 
-                    <!-- Пагинация -->
                     @if (Model.TotalPages > 1)
                     {
                         <nav class="mt-5">
@@ -199,10 +189,10 @@
                         <div class="mb-4">
                             <i class="fas fa-box-open fa-4x text-muted"></i>
                         </div>
-                        <h4 class="text-muted mb-3">Товари не знайдені</h4>
-                        <p class="text-muted">Спробуйте змінити параметри пошуку</p>
+                        <h4 class="text-muted mb-3">Товары не найдены</h4>
+                        <p class="text-muted">Попробуйте изменить параметры поиска</p>
                         <a asp-action="Index" class="btn btn-primary">
-                            <i class="fas fa-redo-alt me-2"></i>Скинути фільтри
+                            <i class="fas fa-redo-alt me-2"></i>Сбросить фильтры
                         </a>
                     </div>
                 }
@@ -243,11 +233,9 @@
             event.preventDefault();
             event.stopPropagation();
             
-            // Здесь будет логика добавления в корзину
-            alert('Товар додано до кошика!');
+            alert('Товар добавлен в корзину!');
         }
         
-        // Автоматическое применение фильтров при изменении
         $(document).ready(function() {
             $('input[name="categoryId"]').change(function() {
                 $('#filterForm').submit();
@@ -257,7 +245,6 @@
                 $('#filterForm').submit();
             });
         });
-
 
         async function addToCart(productId, event) {
         if (event) event.preventDefault();
@@ -286,7 +273,6 @@
 
 @section Styles {
     <style>
-        /* Product Cards */
         .product-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
@@ -319,7 +305,6 @@
             text-align: center;
         }
         
-        /* Filters Card */
         .filters-card {
             border: none;
             border-radius: 16px;
@@ -351,7 +336,6 @@
             padding: 1.5rem;
         }
 
-        /* Filter Sections */
         .filter-section:not(:last-child) {
             border-bottom: 1px solid #eee;
             padding-bottom: 1rem;
@@ -379,7 +363,6 @@
             border-radius: 2px;
         }
 
-        /* Category List - Улучшенные стили для радио-кнопок */
         .category-list .form-check {
             padding-left: 0;
             margin-bottom: 0.5rem !important;
@@ -429,12 +412,10 @@
             transition: all 0.2s ease;
         }
 
-        /* Специальный стиль для "Всі категорії" */
         #catAll:checked + .form-check-label {
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
         }
 
-        /* Анимация появления категорий */
         .category-list .form-check {
             animation: slideIn 0.3s ease;
         }
@@ -450,7 +431,6 @@
             }
         }
 
-        /* Price Range */
         .price-range .input-group {
             border-radius: 10px;
             overflow: hidden;
@@ -476,7 +456,6 @@
             box-shadow: none;
         }
 
-        /* Pagination */
         .page-link {
             color: #667eea;
             border: none;
@@ -489,7 +468,6 @@
             border-color: transparent;
         }
         
-        /* Breadcrumb */
         .breadcrumb {
             background: transparent;
         }
@@ -503,7 +481,6 @@
             color: #6c757d;
         }
 
-        /* Scrollbar for category list */
         .category-list {
             max-height: 300px;
             overflow-y: auto;
@@ -528,7 +505,6 @@
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
 
-        /* Button styles */
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;

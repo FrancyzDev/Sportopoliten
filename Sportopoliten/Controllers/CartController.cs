@@ -32,6 +32,52 @@ namespace Sportopoliten.Controllers
             return RedirectToAction("Login", "Account");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetCartCount()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Json(new { count = 0 });
+                }
+
+                int userId = int.Parse(userIdClaim.Value);
+                var count = await _cartService.GetCartItemCountAsync(userId);
+
+                return Json(new { count = count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { count = 0, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int productId, int count = 1, string size = null)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Json(new { success = false, redirectToLogin = true, message = "Необходимо авторизоваться" });
+                }
+
+                int userId = int.Parse(userIdClaim.Value);
+                await _cartService.AddToCartAsync(userId, productId, count);
+
+                var totalCount = await _cartService.GetCartItemCountAsync(userId);
+
+                return Json(new { success = true, count = totalCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(int productId, int count)
         {
@@ -43,7 +89,8 @@ namespace Sportopoliten.Controllers
                 int userId = int.Parse(userIdClaim.Value);
                 await _cartService.UpdateQuantityAsync(userId, productId, count);
 
-                return Json(new { success = true });
+                var totalCount = await _cartService.GetCartItemCountAsync(userId);
+                return Json(new { success = true, count = totalCount });
             }
             catch (Exception ex)
             {
@@ -62,7 +109,8 @@ namespace Sportopoliten.Controllers
                 int userId = int.Parse(userIdClaim.Value);
                 await _cartService.RemoveItemAsync(productId, userId);
 
-                return Json(new { success = true, message = "Товар видалено" });
+                var totalCount = await _cartService.GetCartItemCountAsync(userId);
+                return Json(new { success = true, count = totalCount, message = "Товар удален" });
             }
             catch (Exception ex)
             {

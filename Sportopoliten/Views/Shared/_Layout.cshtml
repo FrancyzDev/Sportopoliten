@@ -5,26 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Sportopoliten</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" 
           rel="stylesheet" 
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" 
           crossorigin="anonymous">
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" 
-          integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" 
-          crossorigin="anonymous" 
-          referrerpolicy="no-referrer" />
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     
-    <!-- Собственные стили -->
     <link rel="stylesheet" 
           href="~/css/site.css" 
           asp-append-version="true" />
     
-    <!-- Секция для дополнительных стилей -->
     @await RenderSectionAsync("Styles", required: false)
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .content-wrapper {
+            flex: 1 0 auto;
+        }
+        
+        footer {
+            flex-shrink: 0;
+            margin-top: 0 !important;
+        }
+        
+        .footer-link {
+            transition: color 0.2s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        
+        .footer-link:hover {
+            color: #ffc107 !important;
+            transform: translateX(3px);
+        }
+        
+        .social-icon {
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .social-icon:hover {
+            background-color: #ffc107;
+            color: #000 !important;
+            transform: translateY(-2px);
+        }
+        
+        .payment-icon {
+            font-size: 1.8rem;
+            margin-right: 0.75rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .payment-icon:hover {
+            opacity: 1;
+        }
+        
+        .newsletter-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .newsletter-input:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #ffc107;
+            box-shadow: none;
+            color: white;
+        }
+        
+        .newsletter-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .btn-outline-warning {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+        
+        .btn-outline-warning:hover {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .footer-divider {
+            opacity: 0.2;
+        }
+        
+        main {
+            padding-bottom: 0 !important;
+        }
+        
+        .cart-icon {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cart-icon i {
+            font-size: 1.3rem;
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .cart-badge.zero {
+            display: none;
+        }
+        
+        @@media (max-width: 768px) {
+            .footer-heading {
+                margin-top: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -37,30 +173,38 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Catalog" asp-action="Index">Каталог</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Cart" asp-action="Index">Кошик</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item me-3">
+                            <a class="nav-link cart-icon position-relative" asp-controller="Cart" asp-action="Index">
+                                <i class="fas fa-shopping-cart text-dark"></i>
+                                <span class="cart-badge" id="cartCountBadge">0</span>
+                            </a>
+                        </li>
+                        
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item me-2">
-                                <span class="nav-link text-dark" style="font-size:0.88rem;">
-                                    <i class="fa-regular fa-user me-1"></i>@User.FindFirst("FullName")?.Value
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-dark" style="font-size:0.82rem;letter-spacing:0.3px;">
-                                        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Выйти
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.88rem;">
+                                        <i class="fa-regular fa-user me-1"></i>@User.FindFirst("FullName")?.Value
                                     </button>
-                                </form>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="@Url.Action("Index", "Account")"><i class="fa-regular fa-user me-2"></i>Мой профиль</a></li>
+                                        <li><a class="dropdown-item" href="@Url.Action("Orders", "Account")"><i class="fa-solid fa-box me-2"></i>Мои заказы</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Выйти
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
                         }
                         else
@@ -82,24 +226,181 @@
         </nav>
     </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <div class="content-wrapper">
+        <div class="container">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="bg-dark text-white pt-5 pb-4">
         <div class="container">
-            &copy; 2026 - Sportopoliten
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="text-uppercase mb-3 fw-bold">
+                        <i class="fas fa-dumbbell me-2 text-warning"></i>Sportopoliten
+                    </h5>
+                    <p class="small text-white-50" style="line-height:1.6;">
+                        Интернет-магазин спортивной одежды и аксессуаров. Только оригинальные бренды, быстрая доставка по всей стране.
+                    </p>
+                    <div class="mt-3">
+                        <p class="mb-1 small">
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i> 
+                            г. Киев, ул. Спортивная, 15
+                        </p>
+                        <p class="mb-1 small">
+                            <i class="fas fa-phone-alt text-warning me-2"></i> 
+                            <a href="tel:+380441234567" class="text-white-50 text-decoration-none">+38 (044) 123-45-67</a>
+                        </p>
+                        <p class="mb-1 small">
+                            <i class="fas fa-envelope text-warning me-2"></i> 
+                            <a href="mailto:info@sportopoliten.ua" class="text-white-50 text-decoration-none">info@sportopoliten.ua</a>
+                        </p>
+                        <p class="mb-0 small">
+                            <i class="fas fa-clock text-warning me-2"></i> 
+                            Пн-Пт: 9:00 - 20:00, Сб: 10:00 - 17:00
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-uppercase mb-3 fw-semibold">Категории</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Мужская одежда</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Женская одежда</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Спортивная обувь</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Аксессуары</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Фитнес и йога</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Бег и триатлон</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-uppercase mb-3 fw-semibold">Покупателям</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Доставка и оплата</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Возврат товара</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Таблица размеров</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Бонусная программа</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">FAQ</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none footer-link">Контакты</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h6 class="text-uppercase mb-3 fw-semibold">Будьте на связи</h6>
+                    <div class="d-flex gap-3 mb-4">
+                        <a href="#" class="social-icon" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="Telegram">
+                            <i class="fab fa-telegram-plane"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="TikTok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="footer-divider my-4">
+
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="small text-white-50 mb-0">
+                        &copy; 2026 Sportopoliten — Все права защищены.
+                        <a href="#" class="text-white-50 text-decoration-none ms-2">Политика конфиденциальности</a>
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="text-white-50 me-2 small">Принимаем к оплате:</span>
+                    <i class="fab fa-cc-visa payment-icon text-white-50"></i>
+                    <i class="fab fa-cc-mastercard payment-icon text-white-50"></i>
+                    <i class="fab fa-cc-paypal payment-icon text-white-50"></i>
+                    <i class="fas fa-credit-card payment-icon text-white-50"></i>
+                    <span class="ms-2 small text-white-50">Приват24, Apple Pay, Google Pay</span>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" 
             crossorigin="anonymous"></script>
     
-    <!-- Секция для скриптов -->
+    <script>
+    window.updateCartCounter = async function() {
+        try {
+            const response = await fetch('/Cart/GetCartCount');
+            const result = await response.json();
+            const badge = document.getElementById('cartCountBadge');
+            
+            if (badge) {
+                if (result.count > 0) {
+                    if (result.count > 99) {
+                        badge.textContent = '99+';
+                    }
+                    else {
+                        badge.textContent = result.count;
+                    }
+                    badge.classList.remove('zero');
+                    badge.style.display = 'flex';
+                } else {
+                    badge.textContent = '0';
+                    badge.classList.add('zero');
+                    badge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating cart counter:', error);
+        }
+    }
+    
+    window.addToCartWithUpdate = async function(productId, quantity = 1, size = null) {
+        try {
+            const params = new URLSearchParams();
+            params.append('productId', productId);
+            params.append('count', quantity);
+            if (size) params.append('size', size);
+            
+            const response = await fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                await window.updateCartCounter();
+                return true;
+            } else {
+                if (result.redirectToLogin) {
+                    window.location.href = '/Account/Login';
+                } else {
+                    alert(result.message || 'Ошибка при добавлении товара');
+                }
+                return false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка при добавлении товара');
+            return false;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        window.updateCartCounter();
+    });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -39,6 +39,10 @@
                                         </div>
                                         <div class="col-md-4">
                                             <h6 class="fw-bold mb-1">@item.ProductName</h6>
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <p class="text-muted small mb-0">Размер: @item.Size</p>
+                                            }
                                         </div>
                                         <div class="col-md-2">
                                             <span class="fw-bold text-primary">@item.Price ₴</span>
@@ -46,20 +50,20 @@
                                         <div class="col-md-2">
                                             <div class="quantity-selector">
                                                 <div class="input-group input-group-sm" style="width: 120px;">
-                                                    <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity(@item.ProductId)">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity(@item.ProductId, '@item.Size')">
                                                         <i class="fas fa-minus"></i>
                                                     </button>
-                                                    <input type="number" id="quantity-@item.ProductId"
+                                                    <input type="number" id="quantity-@item.ProductId-@item.Size?.Replace(" ", "")"
                                                            class="form-control text-center"
                                                            value="@item.Count" min="1" max="99" readonly>
-                                                    <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity(@item.ProductId)">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity(@item.ProductId, '@item.Size')">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-2 text-end">
-                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteCartItem(@item.ProductId)">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteCartItem(@item.ProductId, '@item.Size')">
                                                 <i class="fas fa-trash-alt"></i> Удалить
                                             </button>
                                         </div>
@@ -146,32 +150,35 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function incrementQuantity(productId) {
-        const input = document.getElementById('quantity-' + productId);
+        function incrementQuantity(productId, size) {
+        const inputId = size ? `quantity-${productId}-${size.replace(/\s/g, "")}` : `quantity-${productId}`;
+        const input = document.getElementById(inputId);
         let value = parseInt(input.value);
         if (value < 99) {
         value++;
         input.value = value;
-        updateCartQuantity(productId, value);
+        updateCartQuantity(productId, value, size);
         }
         }
 
-        function decrementQuantity(productId) {
-        const input = document.getElementById('quantity-' + productId);
+        function decrementQuantity(productId, size) {
+        const inputId = size ? `quantity-${productId}-${size.replace(/\s/g, "")}` : `quantity-${productId}`;
+        const input = document.getElementById(inputId);
         let value = parseInt(input.value);
         if (value > 1) {
         value--;
         input.value = value;
-        updateCartQuantity(productId, value);
+        updateCartQuantity(productId, value, size);
         }
         }
 
-        async function updateCartQuantity(productId, newCount) {
+        async function updateCartQuantity(productId, newCount, size) {
         try {
+        const body = size ? `productId=${productId}&count=${newCount}&size=${encodeURIComponent(size)}` : `productId=${productId}&count=${newCount}`;
         const response = await fetch('/Cart/UpdateQuantity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `productId=${productId}&count=${newCount}`
+        body: body
         });
 
         const result = await response.json();
@@ -186,7 +193,7 @@
         }
         }
 
-        async function deleteCartItem(productId) {
+        async function deleteCartItem(productId, size) {
         const result = await Swal.fire({
         title: 'Вы уверены?',
         text: 'Товар будет удален из корзины',
@@ -200,10 +207,11 @@
 
         if (result.isConfirmed) {
         try {
+        const body = size ? `productId=${productId}&size=${encodeURIComponent(size)}` : `productId=${productId}`;
         const response = await fetch('/Cart/RemoveFromCart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `productId=${productId}`
+        body: body
         });
 
         const data = await response.json();

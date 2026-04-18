@@ -138,6 +138,7 @@
                             <tr>
                                 <th>Изображение</th>
                                 <th>Товар</th>
+                                <th class="text-center">Размер</th>
                                 <th class="text-center">Количество</th>
                                 <th class="text-end">Цена</th>
                                 <th class="text-end">Сумма</th>
@@ -168,6 +169,16 @@
                                             </div>
                                         }
                                     </td>
+                                    <td class="text-center align-middle">
+                                        @if (!string.IsNullOrEmpty(item.Size))
+                                        {
+                                            <span class="badge bg-secondary">@item.Size</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
                                     <td class="text-center align-middle">@item.Count шт.</td>
                                     <td class="text-end align-middle">@item.PriceAtPurchase ₴</td>
                                     <td class="text-end align-middle">
@@ -178,7 +189,7 @@
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <td colspan="4" class="text-end fw-bold">Итого:</td>
+                                <td colspan="5" class="text-end fw-bold">Итого:</td>
                                 <td class="text-end fw-bold text-primary h5">@Model.TotalAmount ₴</td>
                             </tr>
                         </tfoot>
@@ -306,5 +317,11 @@
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
             }
+        
+        .badge.bg-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            padding: 0.35rem 0.65rem;
+            font-weight: 500;
+        }
     </style>
 }

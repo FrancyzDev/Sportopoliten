@@ -55,7 +55,7 @@ namespace Sportopoliten.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart(int productId, int count = 1, string size = null)
+        public async Task<IActionResult> AddToCart(int productId, int count = 1, string? size = null)
         {
             try
             {
@@ -66,7 +66,7 @@ namespace Sportopoliten.Controllers
                 }
 
                 int userId = int.Parse(userIdClaim.Value);
-                await _cartService.AddToCartAsync(userId, productId, count);
+                await _cartService.AddToCartAsync(userId, productId, count, size);
 
                 var totalCount = await _cartService.GetCartItemCountAsync(userId);
 
@@ -79,7 +79,7 @@ namespace Sportopoliten.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateQuantity(int productId, int count)
+        public async Task<IActionResult> UpdateQuantity(int productId, int count, string? size = null)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace Sportopoliten.Controllers
                 if (userIdClaim == null) return Json(new { success = false });
 
                 int userId = int.Parse(userIdClaim.Value);
-                await _cartService.UpdateQuantityAsync(userId, productId, count);
+                await _cartService.UpdateQuantityAsync(userId, productId, count, size);
 
                 var totalCount = await _cartService.GetCartItemCountAsync(userId);
                 return Json(new { success = true, count = totalCount });
@@ -99,15 +99,15 @@ namespace Sportopoliten.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RemoveFromCart(int productId)
+        public async Task<IActionResult> RemoveFromCart(int productId, string? size = null)
         {
             try
             {
-                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
                 if (userIdClaim == null) return Json(new { success = false });
 
                 int userId = int.Parse(userIdClaim.Value);
-                await _cartService.RemoveItemAsync(productId, userId);
+                await _cartService.RemoveItemAsync(productId, userId, size);
 
                 var totalCount = await _cartService.GetCartItemCountAsync(userId);
                 return Json(new { success = true, count = totalCount, message = "Товар удален" });

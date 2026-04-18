@@ -11,5 +11,6 @@
         public decimal PriceAtPurchase { get; set; }
         public int Count { get; set; }
         public decimal Subtotal { get; set; }
+        public string? Size { get; set; }
     }
 }

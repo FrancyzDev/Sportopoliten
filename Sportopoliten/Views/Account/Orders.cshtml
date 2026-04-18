@@ -117,7 +117,12 @@
                                                             @foreach (var item in order.OrderItems.Take(3))
                                                             {
                                                                 <span class="badge bg-light text-dark">
-                                                                    @item.ProductName x @item.Count
+                                                                    @item.ProductName
+                                                                    @if (!string.IsNullOrEmpty(item.Size))
+                                                                    {
+                                                                        <text>(@item.Size)</text>
+                                                                    }
+                                                                    x @item.Count
                                                                 </span>
                                                             }
                                                             @if (order.OrderItems.Count() > 3)

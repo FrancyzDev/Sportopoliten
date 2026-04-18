@@ -1,4 +1,4 @@
-﻿@model Sportopoliten.ViewModels.ProductViewModels.DetailProductViewModel;
+﻿@model Sportopoliten.ViewModels.ProductViewModels.DetailProductViewModel
 @using System.Globalization
 
 @{
@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="price mb-4">
-                    <span class="display-6 fw-bold text-primary">@Model.Price</span>
+                    <span class="display-6 fw-bold text-primary">@Model.Price ₴</span>
                 </div>
 
                 <div class="description mb-4">
@@ -82,7 +82,7 @@
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart(@Model.Id)">
+                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart()">
                         <i class="fas fa-shopping-cart me-2"></i>Добавить в корзину
                     </button>
                     <button class="btn btn-outline-secondary w-100" onclick="addToWishlist()">
@@ -100,6 +100,16 @@
                         <div class="col-6">
                             <small class="text-muted">
                                 <i class="fas fa-undo me-1"></i> Возврат 14 дней
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i> Гарантия качества
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-credit-card me-1"></i> Оплата частями
                             </small>
                         </div>
                     </div>
@@ -122,8 +132,8 @@
         });
         });
         
-        async function addToCart(event) {
-        if (typeof selectedSize === 'undefined' || !selectedSize) {
+        async function addToCart() {
+        if (!selectedSize) {
         Swal.fire({
         icon: 'warning',
         title: 'Выберите размер',
@@ -135,9 +145,9 @@
 
         const quantity = parseInt(document.getElementById('quantity').value) || 1;
         const productId = @Model.Id;
-    
+        
         const button = event?.currentTarget || event?.target;
-    
+        
         if (button) {
         button.dataset.originalHtml = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавляется...';
@@ -150,11 +160,9 @@
         params.append('count', quantity);
         params.append('size', selectedSize);
 
-        const response = await fetch('@Url.Action("AddToCart", "Catalog")', {
+        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
         method: 'POST',
-        headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
         });
 
@@ -171,7 +179,7 @@
         timer: 2000,
         timerProgressBar: true
         });
-            
+                    
         if (typeof updateCartCounter === "function") updateCartCounter();
 
         if (button) {
@@ -182,7 +190,11 @@
         }, 1500);
         }
         } else {
+        if (result.redirectToLogin) {
+        window.location.href = '/Account/Login';
+        } else {
         Swal.fire('Ошибка', result.message, 'error');
+        }
         resetButton(button);
         }
         } catch (error) {
@@ -192,26 +204,19 @@
         }
         }
 
-        function resetButton(button) {
-        if (button) {
-        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Добавить в корзину';
-        button.disabled = false;
-        }
-        }
-        
-        async function addToCartSimple(productId) {
+        async function addToCartQuick(productId, event) {
+        event.preventDefault();
+        event.stopPropagation();
+            
         try {
-        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+        const response = await fetch('/Cart/AddToCart', {
         method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        body: JSON.stringify({ productId: productId, count: 1 })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `productId=${productId}&count=1`
         });
-                
+
         const result = await response.json();
-                
+
         if (result.success) {
         Swal.fire({
         icon: 'success',
@@ -222,9 +227,18 @@
         timer: 1500
         });
         updateCartCounter();
+        } else if (result.redirectToLogin) {
+        window.location.href = '/Account/Login';
         }
         } catch (error) {
         console.error('Error:', error);
+        }
+        }
+
+        function resetButton(button) {
+        if (button) {
+        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Добавить в корзину';
+        button.disabled = false;
         }
         }
         
@@ -254,7 +268,7 @@
         if (cartBadge) {
         if (result.count > 0) {
         cartBadge.textContent = result.count;
-        cartBadge.style.display = 'inline-block';
+        cartBadge.style.display = 'flex';
         } else {
         cartBadge.style.display = 'none';
         }
@@ -332,6 +346,38 @@
         .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-outline-secondary:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-2px);
+        }
+        
+        .breadcrumb {
+        background: transparent;
+        }
+        
+        .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+        color: #6c757d;
+        }
+        
+        .add-to-cart-quick {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+        text-align: center;
+        }
+        
+        .product-specifications .card {
+        border-radius: 16px;
         }
     </style>
 }

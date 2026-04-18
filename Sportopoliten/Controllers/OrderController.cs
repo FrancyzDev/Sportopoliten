@@ -68,7 +68,8 @@ namespace Sportopoliten.Controllers
                 Items = currentCart.Items.Select(item => new OrderItemDTO
                 {
                     ProductId = item.ProductId,
-                    Count = item.Count
+                    Count = item.Count,
+                    Size = item.Size
                 }).ToList(),
                 FullName = model.FullName,
                 Phone = model.Phone,

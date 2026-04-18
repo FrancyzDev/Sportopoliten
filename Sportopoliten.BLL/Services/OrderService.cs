@@ -87,7 +87,8 @@ namespace Sportopoliten.BLL.Services
                         ProductName = product.Title,
                         Count = itemDto.Count,
                         PriceAtPurchase = product.Price,
-                        Subtotal = product.Price * itemDto.Count
+                        Subtotal = product.Price * itemDto.Count,
+                        Size = itemDto.Size
                     };
 
                     order.OrderItems.Add(orderItem);

@@ -9,5 +9,6 @@
         public string PricePurchase { get; set; }
         public int Count { get; set; }
         public int SubTotal { get; set; }
+        public string? Size { get; set; }
     }
 }

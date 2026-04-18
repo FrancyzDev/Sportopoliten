@@ -37,16 +37,22 @@ namespace Sportopoliten.BLL.Services
                 {
                     var productImages = await Database.ProductImages.FindAsync(pi => pi.ProductId == product.Id);
                     var firstImage = productImages.FirstOrDefault();
+
+                    // Формируем название с размером
+                    var productNameWithSize = !string.IsNullOrEmpty(item.Size)
+                        ? $"{product.Title} ({item.Size})"
+                        : product.Title;
+
                     itemDTOs.Add(new CartItemDTO
                     {
                         Id = item.Id,
                         CartId = item.CartId,
                         ProductId = product.Id,
                         Count = item.Count,
-
-                        ProductName = product.Title,
+                        Size = item.Size,
+                        ProductName = productNameWithSize,
                         Price = product.Price,
-                        ImageUrl = firstImage != null ? firstImage.ImageUrl : "https://media.licdn.com/dms/image/v2/C560BAQHvjs3O4Utmdw/company-logo_200_200/company-logo_200_200/0/1631351760522?e=2147483647&v=beta&t=98Nb6ha1qF7VFgRtzDHP0WzmNbTlI_r26j4Q4rm3nMg"
+                        ImageUrl = firstImage != null ? firstImage.ImageUrl : "/images/no-image.jpg"
                     });
                 }
             }
@@ -79,7 +85,7 @@ namespace Sportopoliten.BLL.Services
             }
         }
 
-        public async Task AddToCartAsync(int userId, int productId, int count)
+        public async Task AddToCartAsync(int userId, int productId, int count, string? size = null)
         {
             var product = await Database.Products.GetByIdAsync(productId);
             if (product == null)
@@ -97,8 +103,13 @@ namespace Sportopoliten.BLL.Services
                 await Database.SaveChangesAsync();
             }
 
-            var cartItems = await Database.CartItems.FindAsync(ci => ci.CartId == cart.Id && ci.ProductId == productId);
+            var cartItems = await Database.CartItems.FindAsync(ci =>
+                ci.CartId == cart.Id &&
+                ci.ProductId == productId &&
+                ci.Size == size);
+
             var existingItem = cartItems.FirstOrDefault();
+
             if (existingItem != null)
             {
                 existingItem.Count += count;
@@ -110,7 +121,8 @@ namespace Sportopoliten.BLL.Services
                 {
                     CartId = cart.Id,
                     ProductId = productId,
-                    Count = count
+                    Count = count,
+                    Size = size
                 };
                 await Database.CartItems.AddAsync(newItem);
             }
@@ -118,14 +130,14 @@ namespace Sportopoliten.BLL.Services
             await Database.SaveChangesAsync();
         }
 
-        public async Task UpdateQuantityAsync(int userId, int productId, int count)
+        public async Task UpdateQuantityAsync(int userId, int productId, int count, string? size = null)
         {
             var carts = await Database.Carts.FindAsync(c => c.UserId == userId);
             var cart = carts.FirstOrDefault();
 
             if (cart != null)
             {
-                var cartItems = await Database.CartItems.FindAsync(ci => ci.CartId == cart.Id && ci.ProductId == productId);
+                var cartItems = await Database.CartItems.FindAsync(ci => ci.CartId == cart.Id && ci.ProductId == productId && ci.Size == size);
                 var existingItem = cartItems.FirstOrDefault();
 
                 if (existingItem != null)
@@ -137,43 +149,17 @@ namespace Sportopoliten.BLL.Services
             }
         }
 
-        public async Task RemoveItemAsync(int productId, int userId)
+        public async Task RemoveItemAsync(int productId, int userId, string? size = null)
         {
-            var cartItems = await Database.CartItems.FindAsync(ci => ci.ProductId == productId && ci.Cart.UserId == userId);
-
+            var cartItems = await Database.CartItems.FindAsync(ci => ci.ProductId == productId && ci.Cart.UserId == userId && ci.Size == size);
             var itemToRemove = cartItems.FirstOrDefault();
 
             if (itemToRemove != null)
             {
                 Database.CartItems.Delete(itemToRemove);
-
                 await Database.SaveChangesAsync();
             }
         }
-
-        //public async Task UpdateQuantityAsync(int productId, int userId, int count)
-        //{
-        //    var items = await Database.CartItems.FindAsync(ci =>
-        //        ci.ProductId == productId && ci.Cart.UserId == userId);
-        //    var item = items.FirstOrDefault();
-
-        //    if (item != null)
-        //    {
-        //        item.Count = count;
-
-        //        if (item.Count <= 0)
-        //        {
-        //            Database.CartItems.Delete(item);
-        //        }
-        //        else
-        //        {
-        //            Database.CartItems.Update(item);
-        //        }
-
-        //        await Database.SaveChangesAsync();
-        //    }
-        //}
-
 
         public async Task ClearCartAsync(int userId)
         {

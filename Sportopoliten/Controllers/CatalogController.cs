@@ -32,7 +32,6 @@ namespace Sportopoliten.Controllers
             int page = 1,
             int pageSize = 12)
         {
-            // Используем новый метод сервиса
             var (products, totalItems) = await _productService.GetFilteredProductsAsync(
                 searchTerm, categoryId, minPrice, maxPrice, sortBy, page, pageSize);
 

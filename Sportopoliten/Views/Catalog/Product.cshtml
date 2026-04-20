@@ -75,17 +75,17 @@
                 <div class="quantity-selector mb-4">
                     <label class="form-label fw-bold">Количество:</label>
                     <div class="input-group" style="width: 150px;">
-                        <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity()">-</button>
+                        <button class="btn btn-outline-secondary" type="button" id="decrementBtn">-</button>
                         <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="99">
-                        <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity()">+</button>
+                        <button class="btn btn-outline-secondary" type="button" id="incrementBtn">+</button>
                     </div>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary btn-lg w-100 mb-3" onclick="addToCart()">
+                    <button class="btn btn-primary btn-lg w-100 mb-3" id="addToCartBtn">
                         <i class="fas fa-shopping-cart me-2"></i>Добавить в корзину
                     </button>
-                    <button class="btn btn-outline-secondary w-100" onclick="addToWishlist()">
+                    <button class="btn btn-outline-secondary w-100" id="wishlistBtn">
                         <i class="fas fa-heart me-2"></i>Добавить в желания
                     </button>
                 </div>
@@ -124,6 +124,7 @@
     <script>
         let selectedSize = null;
         
+        // Выбор размера
         document.querySelectorAll('.size-btn').forEach(btn => {
         btn.addEventListener('click', function() {
         document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -132,7 +133,8 @@
         });
         });
         
-        async function addToCart() {
+        // Добавление в корзину с использованием глобальной функции
+        document.getElementById('addToCartBtn').addEventListener('click', async function() {
         if (!selectedSize) {
         Swal.fire({
         icon: 'warning',
@@ -145,34 +147,33 @@
 
         const quantity = parseInt(document.getElementById('quantity').value) || 1;
         const productId = @Model.Id;
-        
-        const button = event?.currentTarget || event?.target;
-        
-        if (button) {
-        button.dataset.originalHtml = button.innerHTML;
+        const button = this;
+        const productName = '@Html.Raw(Model.Title)';
+            
+        const originalHtml = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавляется...';
         button.disabled = true;
-        }
-
+            
         try {
         const params = new URLSearchParams();
         params.append('productId', productId);
         params.append('count', quantity);
         params.append('size', selectedSize);
-
-        const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+                
+        const response = await fetch('/Cart/AddToCart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
         });
-
+                
         const result = await response.json();
-
+                
         if (result.success) {
+        // Показываем уведомление об успехе
         Swal.fire({
         icon: 'success',
         title: 'Добавлено!',
-        text: `@Html.Raw(Model.Title) (${selectedSize}) - ${quantity} шт.`,
+        text: `${productName} (${selectedSize}) - ${quantity} шт.`,
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -180,68 +181,42 @@
         timerProgressBar: true
         });
                     
-        if (typeof updateCartCounter === "function") updateCartCounter();
-
-        if (button) {
+        // Обновляем счетчик корзины
+        if (typeof window.updateCartCounter === 'function') {
+        window.updateCartCounter();
+        }
+                    
         button.innerHTML = '<i class="fas fa-check me-2"></i>Добавлено!';
         setTimeout(() => {
-        button.innerHTML = button.dataset.originalHtml;
+        button.innerHTML = originalHtml;
         button.disabled = false;
         }, 1500);
-        }
         } else {
         if (result.redirectToLogin) {
         window.location.href = '/Account/Login';
         } else {
-        Swal.fire('Ошибка', result.message, 'error');
-        }
-        resetButton(button);
-        }
-        } catch (error) {
-        console.error('Error:', error);
-        Swal.fire('Ошибка', 'Не удалось добавить товар в корзину', 'error');
-        resetButton(button);
-        }
-        }
-
-        async function addToCartQuick(productId, event) {
-        event.preventDefault();
-        event.stopPropagation();
-            
-        try {
-        const response = await fetch('/Cart/AddToCart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `productId=${productId}&count=1`
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
         Swal.fire({
-        icon: 'success',
-        title: 'Добавлено!',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 1500
+        icon: 'error',
+        title: 'Ошибка',
+        text: result.message || 'Не удалось добавить товар в корзину'
         });
-        updateCartCounter();
-        } else if (result.redirectToLogin) {
-        window.location.href = '/Account/Login';
         }
-        } catch (error) {
-        console.error('Error:', error);
-        }
-        }
-
-        function resetButton(button) {
-        if (button) {
-        button.innerHTML = button.dataset.originalHtml || '<i class="fas fa-shopping-cart me-2"></i>Добавить в корзину';
+        button.innerHTML = originalHtml;
         button.disabled = false;
         }
+        } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+        icon: 'error',
+        title: 'Ошибка',
+        text: 'Не удалось добавить товар в корзину'
+        });
+        button.innerHTML = originalHtml;
+        button.disabled = false;
         }
+        });
         
+        // Управление количеством
         function decrementQuantity() {
         let qty = parseInt(document.getElementById('quantity').value);
         if (qty > 1) {
@@ -256,29 +231,16 @@
         }
         }
         
+        document.getElementById('decrementBtn').addEventListener('click', decrementQuantity);
+        document.getElementById('incrementBtn').addEventListener('click', incrementQuantity);
+        
+        // Смена главного изображения
         function changeMainImage(src) {
         document.getElementById('mainImage').src = src;
         }
         
-        async function updateCartCounter() {
-        try {
-        const response = await fetch('@Url.Action("GetCartCount", "Cart")');
-        const result = await response.json();
-        const cartBadge = document.querySelector('.cart-badge');
-        if (cartBadge) {
-        if (result.count > 0) {
-        cartBadge.textContent = result.count;
-        cartBadge.style.display = 'flex';
-        } else {
-        cartBadge.style.display = 'none';
-        }
-        }
-        } catch (error) {
-        console.error('Error:', error);
-        }
-        }
-        
-        function addToWishlist() {
+        // Добавление в желания
+        document.getElementById('wishlistBtn').addEventListener('click', function() {
         Swal.fire({
         icon: 'info',
         title: 'Скоро будет доступно',
@@ -288,36 +250,17 @@
         showConfirmButton: false,
         timer: 2000
         });
+        });
+        
+        // Обновление счетчика корзины при загрузке страницы
+        if (typeof window.updateCartCounter === 'function') {
+        window.updateCartCounter();
         }
     </script>
 }
 
 @section Styles {
     <style>
-        .product-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        cursor: pointer;
-        border-radius: 12px;
-        overflow: hidden;
-        }
-        
-        .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-        }
-        
-        .product-image {
-        overflow: hidden;
-        }
-        
-        .product-image img {
-        transition: transform 0.5s ease;
-        }
-        
-        .product-card:hover .product-image img {
-        transform: scale(1.05);
-        }
-        
         .size-btn.active {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -368,16 +311,17 @@
         color: #6c757d;
         }
         
-        .add-to-cart-quick {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        line-height: 32px;
+        .quantity-selector .input-group {
+        flex-wrap: nowrap;
+        }
+        
+        .quantity-selector .form-control {
+        border: 1px solid #e9ecef;
         text-align: center;
         }
         
-        .product-specifications .card {
-        border-radius: 16px;
+        .quantity-selector .btn-outline-secondary {
+        border-color: #dee2e6;
         }
     </style>
 }

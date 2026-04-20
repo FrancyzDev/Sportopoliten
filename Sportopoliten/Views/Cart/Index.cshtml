@@ -24,10 +24,15 @@
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white py-3">
-                            <h4 class="mb-0">
-                                <i class="fas fa-shopping-cart me-2 text-primary"></i>Товары в корзине
-                                <span class="badge bg-primary ms-2">@Model.TotalQuantity шт.</span>
-                            </h4>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-shopping-cart me-2 text-primary"></i>Товары в корзине
+                                    <span class="badge bg-primary ms-2">@Model.TotalQuantity шт.</span>
+                                </h4>
+                                <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">
+                                    <i class="fas fa-trash-alt me-1"></i> Очистить корзину
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             @foreach (var item in Model.Items)
@@ -226,6 +231,44 @@
         } catch (error) {
         console.error("Error:", error);
         Swal.fire('Ошибка', 'Не удалось удалить товар', 'error');
+        }
+        }
+        }
+
+        async function clearCart() {
+        const result = await Swal.fire({
+        title: 'Очистить корзину?',
+        text: 'Все товары будут удалены из корзины. Это действие нельзя отменить.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Да, очистить',
+        cancelButtonText: 'Отмена'
+        });
+
+        if (result.isConfirmed) {
+        try {
+        const response = await fetch('/Cart/ClearCart', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+        Swal.fire('Очищено!', 'Корзина успешно очищена', 'success').then(() => {
+        location.reload();
+        });
+        } else {
+        Swal.fire('Ошибка', data.message || 'Не удалось очистить корзину', 'error');
+        }
+        } catch (error) {
+        console.error("Error:", error);
+        Swal.fire('Ошибка', 'Не удалось очистить корзину', 'error');
         }
         }
         }

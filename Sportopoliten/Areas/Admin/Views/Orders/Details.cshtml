@@ -1,4 +1,5 @@
 ﻿@using Sportopoliten.DAL.Entities
+@using Sportopoliten.Extensions
 @model Sportopoliten.DAL.Entities.Order
 
 @{
@@ -73,7 +74,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small text-uppercase">Дата заказа</label>
-                    <p class="fw-bold mb-0">@Model.OrderDate.ToString("dd.MM.yyyy HH:mm")</p>
+                    <p class="fw-bold mb-0">@Model.OrderDate.ToKyivTime().ToString("dd.MM.yyyy HH:mm")</p>
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small text-uppercase">Статус</label>

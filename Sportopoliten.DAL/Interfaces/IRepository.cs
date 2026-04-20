@@ -1,5 +1,4 @@
-﻿using Sportopoliten.DAL.Entities;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace Sportopoliten.DAL.Interfaces
 {
@@ -14,11 +13,7 @@ namespace Sportopoliten.DAL.Interfaces
         void Delete(T entity);
         void RemoveRange(IEnumerable<T> entities);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
-
-        // Для получения списка (аналог ToList)
         Task<IEnumerable<T>> GetWithQueryAsync(Func<IQueryable<T>, IQueryable<T>> queryOperation);
-
-        // Для получения одного объекта (аналог FirstOrDefault)
         Task<T?> GetSingleWithQueryAsync(Func<IQueryable<T>, IQueryable<T>> queryOperation);
     }
 }

@@ -39,7 +39,7 @@ namespace Sportopoliten.BLL.Services
                 Salt = salt,
                 IsAdmin = false,
                 CreatedAt = DateTime.UtcNow,
-                Cart = new Cart() // Создаем корзину для нового пользователя
+                Cart = new Cart()
             };
 
             await Database.Users.AddAsync(user);

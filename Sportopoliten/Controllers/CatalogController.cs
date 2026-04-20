@@ -48,7 +48,6 @@ namespace Sportopoliten.Controllers
                 CategoryName = p.Category != null ? p.Category.Title : "Без категории"
             }).ToList();
 
-            // Используем новый метод категорий
             var categoriesWithCount = await _categoryService.GetCategoriesWithProductCountAsync();
 
             var categories = categoriesWithCount.Select(c => new CategoryFilterViewModel

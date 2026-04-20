@@ -51,7 +51,6 @@ namespace Sportopoliten.Controllers
             if (currentCart == null || currentCart.Items == null || !currentCart.Items.Any())
                 return RedirectToAction("Index", "Cart");
 
-            // Добавьте проверку ModelState
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors);

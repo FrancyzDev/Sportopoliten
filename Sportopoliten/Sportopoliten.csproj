@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Admin\ViewModels\Orders\" />
     <Folder Include="wwwroot\images\categories\" />
   </ItemGroup>
 

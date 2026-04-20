@@ -54,7 +54,7 @@ namespace Sportopoliten.Areas.Admin.Controllers
                 var dto = new CreateCategoryDTO
                 {
                     Title = model.Title,
-                    ImageUrl = model.ImageUrl // Просто передаем URL из модели
+                    ImageUrl = model.ImageUrl
                 };
 
                 await _categoryService.CreateCategoryAsync(dto);
@@ -81,7 +81,7 @@ namespace Sportopoliten.Areas.Admin.Controllers
             {
                 Id = category.Id,
                 Title = category.Title,
-                ImageUrl = category.ImageUrl // Теперь просто строка с URL
+                ImageUrl = category.ImageUrl
             };
 
             return View(model);
@@ -101,14 +101,12 @@ namespace Sportopoliten.Areas.Admin.Controllers
 
             try
             {
-                // Создаем DTO для обновления
                 var dto = new UpdateCategoryDTO
                 {
                     Title = model.Title,
-                    ImageUrl = model.ImageUrl // Просто передаем URL из модели
+                    ImageUrl = model.ImageUrl
                 };
 
-                // Обновляем категорию в базе данных
                 await _categoryService.UpdateCategoryAsync(id, dto);
 
                 TempData["Success"] = "Категория успешно обновлена!";
@@ -133,7 +131,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
             if (category == null)
                 return NotFound();
 
-            // Преобразуем Category в CategoryDTO
             var categoryDTO = new CategoryDTO
             {
                 Id = category.Id,
@@ -152,7 +149,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
         {
             try
             {
-                // Удаляем категорию (сервис сам должен удалить изображение, если нужно)
                 await _categoryService.DeleteCategoryAsync(id);
                 TempData["Success"] = "Категория успешно удалена!";
             }

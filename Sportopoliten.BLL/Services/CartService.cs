@@ -38,7 +38,6 @@ namespace Sportopoliten.BLL.Services
                     var productImages = await Database.ProductImages.FindAsync(pi => pi.ProductId == product.Id);
                     var firstImage = productImages.FirstOrDefault();
 
-                    // Формируем название с размером
                     var productNameWithSize = !string.IsNullOrEmpty(item.Size)
                         ? $"{product.Title} ({item.Size})"
                         : product.Title;
@@ -68,18 +67,15 @@ namespace Sportopoliten.BLL.Services
         {
             try
             {
-                // Получаем корзину пользователя
                 var cart = await GetCartAsync(userId);
 
                 if (cart == null || cart.Items == null)
                     return 0;
 
-                // Суммируем количество всех товаров в корзине
                 return cart.Items.Sum(item => item.Count);
             }
             catch (Exception ex)
             {
-                // Логирование ошибки
                 Console.WriteLine($"Error getting cart item count: {ex.Message}");
                 return 0;
             }

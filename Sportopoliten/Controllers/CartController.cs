@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.ViewModels.HomeViewModels;
 using System.Security.Claims;
 
 namespace Sportopoliten.Controllers

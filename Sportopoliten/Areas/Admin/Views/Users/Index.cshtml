@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Sportopoliten.BLL.DTO.User.UserDTO>
+﻿@using Sportopoliten.Extensions
+@model IEnumerable<Sportopoliten.BLL.DTO.User.UserDTO>
 
 @{
     ViewData["Title"] = "Управление пользователями";
@@ -62,7 +63,7 @@
                                     <span class="badge bg-secondary">Пользователь</span>
                                 }
                             </td>
-                            <td>@user.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@user.CreatedAt.ToKyivTime().ToString("dd.MM.yyyy HH:mm")</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a asp-area="Admin" asp-controller="Users" asp-action="details" asp-route-id="@user.Id" class="btn btn-sm btn-info" title="Детали">
@@ -84,7 +85,6 @@
     </div>
 </div>
 
-<!-- Modal для подтверждения удаления -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

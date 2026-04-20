@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sportopoliten.BLL.DTO.User;
 using Sportopoliten.BLL.Interfaces;
-using Sportopoliten.BLL.Services;
 using Sportopoliten.ViewModels.AccountViewModels;
 using System.Security.Claims;
 
@@ -90,7 +89,6 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Найдём пользователя для получения Id и роли
         var userDto = await _userService.GetUserByEmailAsync(model.LoginOrEmail)
                       ?? await _userService.GetUserByLoginAsync(model.LoginOrEmail);
 
@@ -105,6 +103,7 @@ public class AccountController : Controller
             new (ClaimTypes.NameIdentifier, userDto.Id.ToString()),
             new (ClaimTypes.Name, userDto.Login),
             new (ClaimTypes.Email, userDto.Email),
+            new (ClaimTypes.MobilePhone, userDto.Phone),
             new ("FullName", userDto.FullName),
             new ("CartId", userDto.CartId.ToString()),
         };

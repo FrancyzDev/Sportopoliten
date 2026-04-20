@@ -1,11 +1,11 @@
 ﻿@model Sportopoliten.ViewModels.AccountViewModels.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Реєстрація";
+    ViewData["Title"] = "Регистрация";
     Layout = "_Layout";
 }
 
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center mt-5 mb-5">
     <div class="col-12 col-sm-10 col-md-8 col-lg-6">
         <div class="card shadow-sm">
             <div class="card-body p-4">
@@ -65,21 +65,17 @@
 
                 <hr class="my-3" />
 
-                <p class="text-center small text-muted mb-3">
+                <p class="text-center small text-muted mb-0">
                     Уже есть аккаунт?
                     <a asp-action="Login" class="text-dark fw-semibold">Войти</a>
                 </p>
-
-                <div class="alert alert-light border small text-muted mb-0">
-                    <i class="fa-solid fa-cart-shopping me-1"></i>
-                    Регистрация не обязательна —
-                    <a asp-controller="Catalog" asp-action="Index" class="text-dark fw-semibold">перейти к покупкам как гость</a>.
-                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -12,7 +12,7 @@ public class RegisterViewModel
     [Required(ErrorMessage = "Введите email")]
     [EmailAddress(ErrorMessage = "Неверный формат email")]
     [Display(Name = "Email")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     [Required(ErrorMessage = "Введите логин")]
     [Display(Name = "Логин")]

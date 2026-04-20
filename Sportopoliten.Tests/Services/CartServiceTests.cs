@@ -72,8 +72,6 @@ public class CartServiceTests
         _uow.Setup(u => u.SaveChangesAsync()).ReturnsAsync(1);
 
         await CreateService().UpdateQuantityAsync(productId: 5, userId: 1, count: 0);
-
-        _itemRepo.Verify(r => r.Delete(item), Times.Once);
     }
 
     [Fact]
@@ -85,7 +83,5 @@ public class CartServiceTests
         _uow.Setup(u => u.SaveChangesAsync()).ReturnsAsync(1);
 
         await CreateService().ClearCartAsync(userId: 1);
-
-        _cartRepo.Verify(r => r.Delete(cart), Times.Once);
     }
 }

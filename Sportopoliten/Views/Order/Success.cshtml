@@ -1,4 +1,5 @@
-﻿@model Sportopoliten.DAL.Entities.Order
+﻿@using Sportopoliten.Extensions
+@model Sportopoliten.DAL.Entities.Order
 @{
     ViewData["Title"] = "Заказ оформлен";
     Layout = "_Layout";
@@ -34,7 +35,7 @@
                             <div class="row">
                                 <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
                                     <small class="text-muted text-uppercase">Дата заказа</small>
-                                    <p class="fw-bold mb-0">@Model.OrderDate.ToString("dd.MM.yyyy HH:mm")</p>
+                                    <p class="fw-bold mb-0">@Model.OrderDate.ToKyivTime().ToString("dd.MM.yyyy HH:mm")</p>
                                 </div>
                                 <div class="col-md-6 text-center text-md-start">
                                     <small class="text-muted text-uppercase">Сумма заказа</small>

@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Sportopoliten.DAL.Entities.Order>
+﻿@using Sportopoliten.Extensions
+@model IEnumerable<Sportopoliten.DAL.Entities.Order>
 @{
     ViewData["Title"] = "Мои заказы";
     Layout = "_Layout";
@@ -72,8 +73,8 @@
                                                     <div class="col-md-3">
                                                         <div class="order-date">
                                                             <small class="text-muted text-uppercase">Дата заказа</small>
-                                                            <p class="fw-bold mb-0">@order.OrderDate.ToString("dd.MM.yyyy")</p>
-                                                            <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                                            <p class="fw-bold mb-0">@order.OrderDate.ToKyivTime().ToString("dd.MM.yyyy")</p>
+                                                            <small class="text-muted">@order.OrderDate.ToKyivTime().ToString("HH:mm")</small>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-2">

@@ -48,7 +48,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
         {
             var model = new CreateProductViewModel();
 
-            // Получаем категории и преобразуем в SelectList
             var categories = await _categoryService.GetAllCategoriesAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Title");
 
@@ -68,12 +67,10 @@ namespace Sportopoliten.Areas.Admin.Controllers
 
             try
             {
-                // Получаем URL изображений из модели
                 var imageUrls = model.ImageUrls?
                     .Where(url => !string.IsNullOrWhiteSpace(url))
                     .ToList() ?? new List<string>();
 
-                // Создаем DTO
                 var dto = new CreateProductDTO
                 {
                     Title = model.Title,
@@ -115,7 +112,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
                 ImageUrls = product.ImageUrls ?? new List<string>()
             };
 
-            // Получаем категории и создаем SelectList
             var categories = await _categoryService.GetAllCategoriesAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Title");
 
@@ -127,7 +123,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EditProductViewModel model)
         {
-            // Подробное логирование
             Console.WriteLine("=== START EDIT POST ===");
             Console.WriteLine($"ID: {id}, Model ID: {model.Id}");
             Console.WriteLine($"Title: {model.Title}");
@@ -135,7 +130,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
             Console.WriteLine($"CategoryId: {model.CategoryId}");
             Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
 
-            // Выводим все ошибки ModelState
             if (!ModelState.IsValid)
             {
                 Console.WriteLine("ModelState errors:");
@@ -166,7 +160,6 @@ namespace Sportopoliten.Areas.Admin.Controllers
             {
                 Console.WriteLine("Starting update process...");
 
-                // Определяем, какие изображения нужно оставить
                 var imagesToKeep = new List<string>();
 
                 if (model.ImageUrls != null && model.ImageUrls.Any())
@@ -183,19 +176,16 @@ namespace Sportopoliten.Areas.Admin.Controllers
                     }
                 }
 
-                // Получаем новые URL изображений
                 var newImageUrls = model.NewImageUrls?
                     .Where(url => !string.IsNullOrWhiteSpace(url))
                     .ToList() ?? new List<string>();
 
-                // Объединяем старые (неудаленные) и новые изображения
                 var allImages = imagesToKeep.Concat(newImageUrls).ToList();
 
                 Console.WriteLine($"Images to keep: {imagesToKeep.Count}");
                 Console.WriteLine($"New images: {newImageUrls.Count}");
                 Console.WriteLine($"Total images: {allImages.Count}");
 
-                // Создаем DTO
                 var dto = new UpdateProductDTO
                 {
                     Title = model.Title,

@@ -15,8 +15,6 @@ namespace Sportopoliten.BLL.Services
         {
             Database = uow;
         }
-
-        // НОВЫЙ МЕТОД: Возвращает DTO для Edit
         public async Task<EditProductDTO?> GetProductForEditAsync(int id)
         {
             var product = await Database.Products.GetSingleWithQueryAsync(query => query
@@ -40,7 +38,6 @@ namespace Sportopoliten.BLL.Services
             };
         }
 
-        // НОВЫЙ МЕТОД: Возвращает DTO для Details/Index
         public async Task<ProductDTO?> GetProductByIdAsync(int id)
         {
             var product = await Database.Products.GetSingleWithQueryAsync(query => query
@@ -69,7 +66,6 @@ namespace Sportopoliten.BLL.Services
             };
         }
 
-        // НОВЫЙ МЕТОД: Возвращает коллекцию DTO для Index
         public async Task<IEnumerable<ProductDTO>> GetAllProductsAsync()
         {
             var products = await Database.Products.GetWithQueryAsync(query => query
@@ -131,19 +127,16 @@ namespace Sportopoliten.BLL.Services
                 throw new KeyNotFoundException("Товар не найден");
             }
 
-            // Обновляем основные поля
             product.Title = dto.Title;
             product.Description = dto.Description;
             product.CategoryId = dto.CategoryId;
             product.Price = dto.Price;
 
-            // Удаляем старые изображения
             if (product.ProductImages != null && product.ProductImages.Any())
             {
                 Database.ProductImages.RemoveRange(product.ProductImages);
             }
 
-            // Добавляем новые изображения
             if (dto.ProductImages != null && dto.ProductImages.Any())
             {
                 product.ProductImages = new List<ProductImage>();
@@ -180,7 +173,6 @@ namespace Sportopoliten.BLL.Services
             await Database.SaveChangesAsync();
         }
 
-        // Остальные методы без изменений...
         public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
         {
             return await Database.Products.GetWithQueryAsync(query => query

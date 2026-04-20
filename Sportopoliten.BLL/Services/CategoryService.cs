@@ -37,7 +37,7 @@ namespace Sportopoliten.BLL.Services
             var category = new Category
             {
                 Title = dto.Title,
-                ImageUrl = dto.ImageUrl // Добавляем сохранение изображения
+                ImageUrl = dto.ImageUrl
             };
 
             await Database.Categories.AddAsync(category);

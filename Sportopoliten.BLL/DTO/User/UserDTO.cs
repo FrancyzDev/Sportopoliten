@@ -11,8 +11,6 @@ namespace Sportopoliten.BLL.DTO.User
         public string Email { get; set; }
         public bool IsAdmin { get; set; }
         public DateTime CreatedAt { get; set; }
-
-
         public int CartId { get; set; }
         public CartDTO Cart { get; set; }
     }

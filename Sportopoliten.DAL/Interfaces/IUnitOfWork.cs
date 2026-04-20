@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using Sportopoliten.DAL.Entities;
-using Sportopoliten.DAL.Repositories;
 
 namespace Sportopoliten.DAL.Interfaces
 {
@@ -15,7 +14,6 @@ namespace Sportopoliten.DAL.Interfaces
         IRepository<Product> Products { get; }
         IRepository<ProductImage> ProductImages { get; }
         Task<int> SaveChangesAsync();
-
         Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

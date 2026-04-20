@@ -16,7 +16,6 @@ namespace Sportopoliten.BLL.Services
             Database = uow;
         }
 
-        // Получить все заказы
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
             return await Database.Orders.GetWithQueryAsync(query => query
@@ -27,7 +26,6 @@ namespace Sportopoliten.BLL.Services
                 );
         }
 
-        // Получить заказ по ID
         public async Task<Order?> GetOrderByIdAsync(int id)
         {
             return await Database.Orders.GetSingleWithQueryAsync(query => query
@@ -39,7 +37,6 @@ namespace Sportopoliten.BLL.Services
             );
         }
 
-        // Создать новый заказ
         public async Task<Order> CreateOrderAsync(CreateOrderDTO dto)
         {
             using var transaction = await Database.BeginTransactionAsync();
@@ -55,7 +52,6 @@ namespace Sportopoliten.BLL.Services
                     q.Where(p => productIds.Contains(p.Id))
                 )).ToList();
 
-                // Формируем полный адрес доставки
                 var fullShippingAddress = $"{dto.City}, {dto.Address}, {dto.PostalCode}, {dto.Country}";
 
                 var order = new Order
@@ -119,7 +115,6 @@ namespace Sportopoliten.BLL.Services
                 );
         }
 
-        // Получить заказы по статусу
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
             return await Database.Orders.GetWithQueryAsync(query => query
@@ -130,7 +125,6 @@ namespace Sportopoliten.BLL.Services
                 );
         }
 
-        // Обновить статус заказа
         public async Task UpdateOrderStatusAsync(int id, OrderStatus status)
         {
             var order = await Database.Orders.GetByIdAsync(id);
@@ -151,13 +145,11 @@ namespace Sportopoliten.BLL.Services
             if (order == null)
                 throw new KeyNotFoundException($"Заказ с ID {id} не найден");
 
-            // Удаляем все позиции заказа
             foreach (var item in order.OrderItems.ToList())
             {
                 Database.OrderItems.Delete(item);
             }
 
-            // Удаляем сам заказ
             Database.Orders.Delete(order);
             await Database.SaveChangesAsync();
         }

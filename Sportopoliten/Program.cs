@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Sportopoliten.BLL.Interfaces;
@@ -75,9 +74,6 @@ namespace Sportopoliten
                         .WithTheme(ScalarTheme.Alternate)
                         .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
                 });
-                // Уберите эти строки или перенесите в нужное место
-                // app.UseExceptionHandler("/Home/Error");
-                // app.UseHsts();
             }
             else
             {
@@ -86,7 +82,7 @@ namespace Sportopoliten
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();  // Добавьте эту строку для статических файлов
+            app.UseStaticFiles();
             app.UseRouting();
 
             app.UseAuthentication();

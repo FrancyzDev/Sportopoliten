@@ -1,10 +1,15 @@
-﻿@model Sportopoliten.BLL.DTO.Cart.CartDTO
+﻿@using System.Security.Claims
+@model Sportopoliten.BLL.DTO.Cart.CartDTO
 @{
     ViewData["Title"] = "Оформление заказа";
     Layout = "_Layout";
     
     decimal shippingCost = Model.TotalPrice >= 2000 ? 0 : 120;
     decimal totalWithShipping = Model.TotalPrice + shippingCost;
+    
+    var userFullName = User.FindFirst("FullName")?.Value ?? "";
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+    var userPhone = User.FindFirst(ClaimTypes.MobilePhone)?.Value ?? "";
 }
 
 <nav aria-label="breadcrumb" class="bg-light py-3">
@@ -42,17 +47,17 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">ФИО</label>
-                                    <input type="text" class="form-control" name="FullName" required>
+                                    <input type="text" class="form-control" name="FullName" value="@userFullName" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Телефон</label>
-                                    <input type="tel" class="form-control" name="Phone"
-                                           placeholder="+38 0XX XXX XX XX" required>
+                                    <input type="tel" class="form-control" name="Phone" id="Phone"
+                                           placeholder="+38 0XX XXX XX XX" value="@userPhone" required>
                                     <small class="text-muted">Формат: +38 0XX XXX XX XX</small>
                                 </div>
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label fw-bold">Email</label>
-                                    <input type="email" class="form-control" name="Email" required>
+                                    <input type="email" class="form-control" name="Email" value="@userEmail" required>
                                 </div>
                             </div>
                         </div>
@@ -254,7 +259,6 @@
 </section>
 
 <script>
-    // Клиентская валидация телефона
     const phoneInput = document.querySelector('input[name="Phone"]');
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {

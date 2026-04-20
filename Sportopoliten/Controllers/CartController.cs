@@ -54,6 +54,29 @@ namespace Sportopoliten.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearCart()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Json(new { success = false, message = "Пользователь не авторизован" });
+                }
+
+                int userId = int.Parse(userIdClaim.Value);
+                await _cartService.ClearCartAsync(userId);
+
+                return Json(new { success = true, message = "Корзина очищена" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int count = 1, string? size = null)
         {
             try
